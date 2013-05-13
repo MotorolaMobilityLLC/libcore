@@ -242,6 +242,9 @@ public final class MimeUtils {
         // Motorola, dvw873, 05/09/2016, IKSWM-36757/IKSWM-38174
         add("audio/mp3", "mp3");
         add("audio/prs.sid", "sid");
+        // BEGIN Motorola, a16448, May13/2013, IKJBXLINE-8517
+        add("audio/qcelp",   "qcp");
+        // END   Motorola, a16448, May13/2013, IKJBXLINE-8517
         add("audio/x-aiff", "aif");
         add("audio/x-aiff", "aiff");
         add("audio/x-aiff", "aifc");
