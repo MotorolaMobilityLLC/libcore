@@ -244,6 +244,9 @@ public final class MimeUtils {
         add("audio/ogg", "ogg");
         add("audio/ogg", "spx");
         add("audio/prs.sid", "sid");
+        // BEGIN Motorola, a16448, May13/2013, IKJBXLINE-8517
+        add("audio/qcelp",   "qcp");
+        // END   Motorola, a16448, May13/2013, IKJBXLINE-8517
         add("audio/x-aiff", "aif");
         add("audio/x-aiff", "aiff");
         add("audio/x-aiff", "aifc");
