@@ -240,6 +240,8 @@ public final class MimeUtils {
         add("audio/mpeg", "mp2");
         add("audio/mpeg", "m4a");
         add("audio/mpegurl", "m3u");
+        // Motorola, dvw873, 05/09/2016, IKSWM-36757/IKSWM-38174
+        add("audio/mp3", "mp3");
         add("audio/prs.sid", "sid");
         // BEGIN Motorola, a16448, May13/2013, IKJBXLINE-8517
         add("audio/qcelp",   "qcp");
