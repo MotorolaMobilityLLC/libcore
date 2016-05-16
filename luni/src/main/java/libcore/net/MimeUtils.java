@@ -239,6 +239,8 @@ public final class MimeUtils {
         add("audio/mpeg", "mp2");
         add("audio/mpeg", "m4a");
         add("audio/mpegurl", "m3u");
+        // Motorola, dvw873, 05/09/2016, IKSWM-36757/IKSWM-38174
+        add("audio/mp3", "mp3");
         add("audio/prs.sid", "sid");
         add("audio/x-aiff", "aif");
         add("audio/x-aiff", "aiff");
