@@ -1435,9 +1435,7 @@ public class X500Name implements GeneralNameInterface, Principal {
     public X500Principal asX500Principal() {
         if (x500Principal == null) {
             try {
-                Object[] args = new Object[] {this};
-                x500Principal =
-                        (X500Principal)principalConstructor.newInstance(args);
+                x500Principal = new X500Principal(this);
             } catch (Exception e) {
                 throw new RuntimeException("Unexpected exception", e);
             }
