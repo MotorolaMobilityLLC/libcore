@@ -126,6 +126,8 @@ import javax.security.auth.x500.X500Principal;
  * @see GeneralName
  * @see GeneralNames
  * @see GeneralNameInterface
+ *
+ * @hide
  */
 
 public class X500Name implements GeneralNameInterface, Principal {
@@ -1431,6 +1433,8 @@ public class X500Name implements GeneralNameInterface, Principal {
      *
      * Note that we are using privileged reflection to access the hidden
      * package private constructor in X500Principal.
+     *
+     * @hide
      */
     public X500Principal asX500Principal() {
         if (x500Principal == null) {
