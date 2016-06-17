@@ -41,6 +41,8 @@ import sun.util.calendar.CalendarSystem;
  * corrupt the input stream of DER values.
  *
  * @author David Brownell
+ *
+ * @hide
  */
 class DerInputBuffer extends ByteArrayInputStream implements Cloneable {
 
