@@ -35,6 +35,8 @@ import sun.security.util.*;
  *
  * @author Amit Kapoor
  * @author Hemma Prafullchandra
+ *
+ * @hide
  */
 public interface GeneralNameInterface {
     /**
