@@ -51,6 +51,14 @@
 #include <linux/capability.h>
 #endif
 
+//Lenovo-SW caihn add begin 2015-12-17 for SecurityIt, fixed IKUIPRC-54
+#if defined(LENOVOSECURITY)
+#define _LENOVO_SECURITYIT_ENABLED 1
+#else
+#define _LENOVO_SECURITYIT_ENABLED 0
+#endif
+//Lenovo-SW caihn end begin 2015-12-17 for SecurityIt, fixed IKUIPRC-54
+
 static void initConstant(JNIEnv* env, jclass c, const char* fieldName, int value) {
     jfieldID field = env->GetStaticFieldID(c, fieldName, "I");
     env->SetStaticIntField(c, field, value);
@@ -660,6 +668,11 @@ static void OsConstants_initConstants(JNIEnv* env, jclass c) {
     initConstant(env, c, "_SC_XOPEN_UNIX", _SC_XOPEN_UNIX);
     initConstant(env, c, "_SC_XOPEN_VERSION", _SC_XOPEN_VERSION);
     initConstant(env, c, "_SC_XOPEN_XCU_VERSION", _SC_XOPEN_XCU_VERSION);
+    //Lenovo-SW caihn add begin 2015-12-17 for SecurityIt, fixed IKUIPRC-54
+#if defined(LENOVOSECURITY)
+    initConstant(env, c, "_LENOVO_SECURITYIT_ENABLED", _LENOVO_SECURITYIT_ENABLED);
+#endif
+    //Lenovo-SW caihn end begin 2015-12-17 for SecurityIt, fixed IKUIPRC-54
 }
 
 static JNINativeMethod gMethods[] = {

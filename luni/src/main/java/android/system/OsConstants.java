@@ -597,6 +597,10 @@ public final class OsConstants {
     public static final int _SC_XOPEN_UNIX = placeholder();
     public static final int _SC_XOPEN_VERSION = placeholder();
     public static final int _SC_XOPEN_XCU_VERSION = placeholder();
+    /**
+     * @hide Lenovo-SW caihn add 2015-12-17 for SecurityIt, fixed IKUIPRC-54
+     */
+    public static final int _LENOVO_SECURITYIT_ENABLED = placeholder();
 
     /**
      * Returns the string name of a getaddrinfo(3) error value.
