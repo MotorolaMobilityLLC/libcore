@@ -36,6 +36,10 @@ import dalvik.system.CloseGuard;
 import sun.net.ConnectionResetException;
 import sun.net.NetHooks;
 import sun.net.ResourceManager;
+/* Lenovo-SW huangzb1 add 2015-04-03 begin for SecurityIt, fixed IKUIPRC-54 */
+import static android.system.OsConstants.*;
+import android.system.Os;
+/* Lenovo-SW huangzb1 add 2015-04-03 end for SecurityIt, fixed IKUIPRC-54 */
 
 /**
  * Default Socket Implementation. This implementation does
@@ -74,6 +78,11 @@ abstract class AbstractPlainSocketImpl extends SocketImpl
     protected boolean stream;
 
     private final CloseGuard guard = CloseGuard.get();
+
+    /* Lenovo-SW huangzb1 modified 2015-04-03 begin for SecurityIt, fixed IKUIPRC-54 */
+    private static final boolean mSecurityItEnable = (_LENOVO_SECURITYIT_ENABLED != 0);
+    private static boolean mIsLenovoSecurityDialogShowed = false;
+    /* Lenovo-SW huangzb1 modified 2015-04-03 begin for SecurityIt, fixed IKUIPRC-54 */
 
     /**
      * Creates a socket with a boolean that specifies whether this
@@ -346,11 +355,43 @@ abstract class AbstractPlainSocketImpl extends SocketImpl
                 socket.setBound();
                 socket.setConnected();
             }
+        /* Lenovo-SW huangzb1 add 2015-04-03 begin for SecurityIt, fixed IKUIPRC-54 */
+        } catch(ConnectException e){
+            if (mSecurityItEnable) {
+                maybeRefuseByLenovoSecurity();
+            }
+            close();
+            throw e;
+        /* Lenovo-SW huangzb1 add 2015-04-03 end for SecurityIt, fixed IKUIPRC-54 */
         } catch (IOException e) {
             close();
             throw e;
         }
     }
+
+    /* Lenovo-SW huangzb1 add 2015-04-03 begin for SecurityIt, fixed IKUIPRC-54 */
+    private void maybeRefuseByLenovoSecurity(){
+        if(mIsLenovoSecurityDialogShowed){
+            return;
+        }
+        mIsLenovoSecurityDialogShowed = true;
+
+        System.out.println("SecurityIt maybeRefuseByLenovoSecurity");
+        new Thread(new Runnable(){
+            @Override
+            public void run() {
+                try {
+                    //String msg = "uid:"+Os.getuid();
+                    String cmd = "/system/bin/apppcruntime "+Os.getuid();
+                    Runtime.getRuntime().exec(cmd);
+                } catch (Exception e) {
+                    System.out.println("SecurityIt maybeRefuseByLenovoSecurity error"+e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+    /* Lenovo-SW huangzb1 add 2015-04-03 end for SecurityIt, fixed IKUIPRC-54 */
 
     /**
      * Binds the socket to the specified address of the specified local port.
