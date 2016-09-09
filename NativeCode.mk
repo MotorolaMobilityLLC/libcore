@@ -103,6 +103,11 @@ core_test_files := \
 #
 
 include $(CLEAR_VARS)
+#Lenovo-SW caihn add begin 2015-12-17 for SecurityIt, fixed IKUIPRC-54
+ifeq ($(LenovoSecurity), yes)
+LOCAL_CFLAGS += -DLENOVOSECURITY
+endif
+#Lenovo-SW caihn add begin 2015-12-17 for SecurityIt, fixed IKUIPRC-54
 LOCAL_CFLAGS += $(libart_cflags)
 LOCAL_CPPFLAGS += $(core_cppflags)
 LOCAL_SRC_FILES += $(core_src_files)
