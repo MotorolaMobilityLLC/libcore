@@ -711,6 +711,7 @@ static int
 childProcess(void *arg)
 {
     const ChildStuff* p = (const ChildStuff*) arg;
+    sigset_t st; /* Motorola, a5705c, IKSWN-3437, 09/26/2016 */
 
     /* Close the parent sides of the pipes.
        Closing pipe fds here is redundant, since closeDescriptors()
@@ -757,6 +758,12 @@ childProcess(void *arg)
 
     if (fcntl(FAIL_FILENO, F_SETFD, FD_CLOEXEC) == -1)
         goto WhyCantJohnnyExec;
+
+    /* BEGIN Motorola, a5705c, IKSWN-3437, 09/26/2016 */
+    sigemptyset(&st);
+    sigaddset(&st, SIGTERM);
+    sigprocmask(SIG_UNBLOCK, &st, NULL);
+    /* END IKSWN-3437 */
 
     JDK_execvpe(p->argv[0], p->argv, p->envv);
 
