@@ -92,11 +92,9 @@ public final class X500Principal implements Principal, java.io.Serializable {
      * using privileged reflection from classes in sun.security.*.
      * Currently referenced from sun.security.x509.X500Name.asX500Principal().
      *
-     * MMI_STOPSHIP: Making this constructor public. Fix soon!!!
-     *
      * @hide
      */
-    public X500Principal(X500Name x500Name) {
+    X500Principal(X500Name x500Name) {
         thisX500Name = x500Name;
     }
 
