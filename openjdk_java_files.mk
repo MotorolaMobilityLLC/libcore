@@ -518,6 +518,7 @@ openjdk_javadoc_files := \
     ojluni/src/main/java/java/security/Permissions.java \
     ojluni/src/main/java/java/security/Policy.java \
     ojluni/src/main/java/java/security/PolicySpi.java \
+    ojluni/src/main/java/java/security/Principal.java \
     ojluni/src/main/java/java/security/PrivateKey.java \
     ojluni/src/main/java/java/security/PrivilegedActionException.java \
     ojluni/src/main/java/java/security/PrivilegedAction.java \
@@ -1039,18 +1040,6 @@ openjdk_javadoc_files := \
     ojluni/src/main/java/javax/sql/StatementEvent.java \
     ojluni/src/main/java/javax/sql/StatementEventListener.java \
     ojluni/src/main/java/sun/reflect/CallerSensitive.java \
-    ojluni/src/main/java/sun/security/x509/X500Name.java \
-    ojluni/src/main/java/sun/security/x509/GeneralNameInterface.java \
-    ojluni/src/main/java/java/security/Principal.java \
-    ojluni/src/main/java/sun/security/util/DerValue.java \
-    ojluni/src/main/java/sun/security/util/DerInputStream.java \
-    ojluni/src/main/java/sun/security/x509/AVA.java \
-    ojluni/src/main/java/sun/security/util/DerOutputStream.java \
-    ojluni/src/main/java/sun/security/util/ObjectIdentifier.java \
-    ojluni/src/main/java/sun/security/util/BitArray.java \
-    ojluni/src/main/java/sun/security/util/DerEncoder.java \
-    ojluni/src/main/java/sun/security/x509/RDN.java \
-    ojluni/src/main/java/sun/security/util/DerInputBuffer.java \
 
 openjdk_java_files := \
     ojluni/src/main/java/com/sun/net/ssl/internal/ssl/Provider.java \
@@ -1376,17 +1365,24 @@ openjdk_java_files := \
     ojluni/src/main/java/sun/security/ssl/X509KeyManagerImpl.java \
     ojluni/src/main/java/sun/security/ssl/X509TrustManagerImpl.java \
     ojluni/src/main/java/sun/security/timestamp/TimestampToken.java \
+    ojluni/src/main/java/sun/security/util/BitArray.java \
     ojluni/src/main/java/sun/security/util/ByteArrayLexOrder.java \
     ojluni/src/main/java/sun/security/util/ByteArrayTagOrder.java \
     ojluni/src/main/java/sun/security/util/Cache.java \
     ojluni/src/main/java/sun/security/util/Debug.java \
+    ojluni/src/main/java/sun/security/util/DerEncoder.java \
     ojluni/src/main/java/sun/security/util/DerIndefLenConverter.java \
+    ojluni/src/main/java/sun/security/util/DerInputBuffer.java \
+    ojluni/src/main/java/sun/security/util/DerInputStream.java \
+    ojluni/src/main/java/sun/security/util/DerOutputStream.java \
+    ojluni/src/main/java/sun/security/util/DerValue.java \
     ojluni/src/main/java/sun/security/util/DisabledAlgorithmConstraints.java \
     ojluni/src/main/java/sun/security/util/HostnameChecker.java \
     ojluni/src/main/java/sun/security/util/KeyUtil.java \
     ojluni/src/main/java/sun/security/util/Length.java \
     ojluni/src/main/java/sun/security/util/ManifestDigester.java \
     ojluni/src/main/java/sun/security/util/ManifestEntryVerifier.java \
+    ojluni/src/main/java/sun/security/util/ObjectIdentifier.java \
     ojluni/src/main/java/sun/security/util/PropertyExpander.java \
     ojluni/src/main/java/sun/security/util/Resources.java \
     ojluni/src/main/java/sun/security/util/ResourcesMgr.java \
@@ -1404,6 +1400,7 @@ openjdk_java_files := \
     ojluni/src/main/java/sun/security/x509/AttributeNameEnumeration.java \
     ojluni/src/main/java/sun/security/x509/AuthorityInfoAccessExtension.java \
     ojluni/src/main/java/sun/security/x509/AuthorityKeyIdentifierExtension.java \
+    ojluni/src/main/java/sun/security/x509/AVA.java \
     ojluni/src/main/java/sun/security/x509/BasicConstraintsExtension.java \
     ojluni/src/main/java/sun/security/x509/CertAttrSet.java \
     ojluni/src/main/java/sun/security/x509/CertificateAlgorithmId.java \
@@ -1433,6 +1430,7 @@ openjdk_java_files := \
     ojluni/src/main/java/sun/security/x509/ExtendedKeyUsageExtension.java \
     ojluni/src/main/java/sun/security/x509/Extension.java \
     ojluni/src/main/java/sun/security/x509/FreshestCRLExtension.java \
+    ojluni/src/main/java/sun/security/x509/GeneralNameInterface.java \
     ojluni/src/main/java/sun/security/x509/GeneralName.java \
     ojluni/src/main/java/sun/security/x509/GeneralNames.java \
     ojluni/src/main/java/sun/security/x509/GeneralSubtree.java \
@@ -1455,6 +1453,7 @@ openjdk_java_files := \
     ojluni/src/main/java/sun/security/x509/PolicyInformation.java \
     ojluni/src/main/java/sun/security/x509/PolicyMappingsExtension.java \
     ojluni/src/main/java/sun/security/x509/PrivateKeyUsageExtension.java \
+    ojluni/src/main/java/sun/security/x509/RDN.java \
     ojluni/src/main/java/sun/security/x509/ReasonFlags.java \
     ojluni/src/main/java/sun/security/x509/RFC822Name.java \
     ojluni/src/main/java/sun/security/x509/SerialNumber.java \
@@ -1464,6 +1463,7 @@ openjdk_java_files := \
     ojluni/src/main/java/sun/security/x509/UniqueIdentity.java \
     ojluni/src/main/java/sun/security/x509/URIName.java \
     ojluni/src/main/java/sun/security/x509/X400Address.java \
+    ojluni/src/main/java/sun/security/x509/X500Name.java \
     ojluni/src/main/java/sun/security/x509/X509AttributeName.java \
     ojluni/src/main/java/sun/security/x509/X509CertImpl.java \
     ojluni/src/main/java/sun/security/x509/X509CertInfo.java \
