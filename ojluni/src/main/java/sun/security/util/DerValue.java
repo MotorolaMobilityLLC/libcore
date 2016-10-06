@@ -52,8 +52,6 @@ import sun.misc.IOUtils;
  * @author David Brownell
  * @author Amit Kapoor
  * @author Hemma Prafullchandra
- *
- * @hide
  */
 public class DerValue {
     /** The tag class types */
