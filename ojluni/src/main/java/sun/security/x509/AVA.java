@@ -58,8 +58,6 @@ import sun.security.pkcs.PKCS9Attribute;
  * @author David Brownell
  * @author Amit Kapoor
  * @author Hemma Prafullchandra
- *
- * @hide
  */
 public class AVA implements DerEncoder {
 

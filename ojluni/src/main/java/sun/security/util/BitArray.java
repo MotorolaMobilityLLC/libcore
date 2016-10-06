@@ -33,8 +33,6 @@ import java.util.Arrays;
  *
  * @author Joshua Bloch
  * @author Douglas Hoover
- *
- * @hide
  */
 
 public class BitArray {

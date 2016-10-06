@@ -50,8 +50,6 @@ import java.util.Locale;
  * @author David Brownell
  * @author Amit Kapoor
  * @author Hemma Prafullchandra
- *
- * @hide
  */
 public class DerOutputStream
 extends ByteArrayOutputStream implements DerEncoder {
