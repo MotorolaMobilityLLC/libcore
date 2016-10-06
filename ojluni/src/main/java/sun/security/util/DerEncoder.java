@@ -33,8 +33,6 @@ import java.io.OutputStream;
  * encoding to an output stream.
  *
  * @author D. N. Hoover
- *
- * @hide
  */
 public interface DerEncoder {
 

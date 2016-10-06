@@ -66,8 +66,6 @@ import javax.security.auth.x500.X500Principal;
  *
  * Note that instances of this class are immutable.
  *
- *
- * @hide
  */
 public class RDN {
 
