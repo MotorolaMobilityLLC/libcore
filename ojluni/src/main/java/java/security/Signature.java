@@ -1306,6 +1306,11 @@ public abstract class Signature extends SignatureSpi {
 
         @Override
         public SignatureSpi getCurrentSpi() {
+            // BEGIN lenovo, yuedl1, IKSWN-14521 sometime lock is null
+            if (lock == null && sigSpi != null) {
+              return sigSpi;
+            }
+            // END IKSWN-14521
             synchronized (lock) {
                 return sigSpi;
             }
