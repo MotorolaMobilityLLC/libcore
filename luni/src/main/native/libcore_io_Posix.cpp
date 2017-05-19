@@ -1347,6 +1347,11 @@ static jobject Posix_open(JNIEnv* env, jobject, jstring javaPath, jint flags, ji
 static jobjectArray Posix_pipe2(JNIEnv* env, jobject, jint flags __unused) {
     int fds[2];
     throwIfMinusOne(env, "pipe2", TEMP_FAILURE_RETRY(pipe2(&fds[0], flags)));
+    // BEGIN Motorola, a5705c, 05/19/2017, IKSWN-54769
+    if (env->ExceptionCheck()) {
+        return NULL;
+    }
+    // END IKSWN-54769
     jobjectArray result = env->NewObjectArray(2, JniConstants::fileDescriptorClass, NULL);
     if (result == NULL) {
         return NULL;
