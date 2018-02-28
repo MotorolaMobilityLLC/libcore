@@ -287,6 +287,72 @@ Java_java_io_UnixFileSystem_delete0(JNIEnv *env, jobject this,
     return rv;
 }
 
+// BEGIN Motorola, a5705c, 02/28/2018, IKSWO-65934
+// Verifies that "bytes" points to valid Modified UTF-8 data.
+static jboolean CheckUtfString(const char* bytes) {
+    if (!bytes) {
+        return JNI_FALSE;
+    }
+
+    while (*bytes != '\0') {
+        const uint8_t* utf8 = (const uint8_t*)(bytes++);
+        // Switch on the high four bits.
+        switch (*utf8 >> 4) {
+            case 0x00:
+            case 0x01:
+            case 0x02:
+            case 0x03:
+            case 0x04:
+            case 0x05:
+            case 0x06:
+            case 0x07:
+                // Bit pattern 0xxx. No need for any extra bytes.
+                break;
+            case 0x08:
+            case 0x09:
+            case 0x0a:
+            case 0x0b:
+                // Bit patterns 10xx, which are illegal start bytes.
+                return JNI_FALSE;
+            case 0x0f:
+                // Bit pattern 1111, which might be the start of a 4 byte
+                // sequence.
+                if ((*utf8 & 0x08) == 0) {
+                    // Bit pattern 1111 0xxx, which is the start of a 4 byte
+                    // sequence. We consume one continuation byte here, and
+                    // fall through to consume two more.
+                    utf8 = (const uint8_t*)(bytes++);
+                    if ((*utf8 & 0xc0) != 0x80) {
+                        return JNI_FALSE;
+                    }
+                } else {
+                    return JNI_FALSE;
+                }
+
+                // Fall through to the cases below to consume two more
+                // continuation bytes.
+            case 0x0e:
+                // Bit pattern 1110, so there are two additional bytes.
+                utf8 = (const uint8_t*)(bytes++);
+                if ((*utf8 & 0xc0) != 0x80) {
+                    return JNI_FALSE;
+                }
+
+                // Fall through to consume one more continuation byte.
+            case 0x0c:
+            case 0x0d:
+                // Bit pattern 110x, so there is one additional byte.
+                utf8 = (const uint8_t*)(bytes++);
+                if ((*utf8 & 0xc0) != 0x80) {
+                    return JNI_FALSE;
+                }
+                break;
+        }
+    }
+    return JNI_TRUE;
+}
+// END IKSWO-65934
+
 // Android-changed: Name changed because of added thread policy check
 JNIEXPORT jobjectArray JNICALL
 Java_java_io_UnixFileSystem_list0(JNIEnv *env, jobject this,
@@ -333,6 +399,15 @@ Java_java_io_UnixFileSystem_list0(JNIEnv *env, jobject this,
             if (JNU_CopyObjectArray(env, rv, old, len) < 0) goto error;
             (*env)->DeleteLocalRef(env, old);
         }
+        // BEGIN Motorola, a5705c, 02/28/2018, IKSWO-65934
+        /* Sanity check against the file name, Android hardcoded the
+         * file.encoding to UTF-8, thus any filename other than that will be
+         * ignored here.
+         */
+        if (CheckUtfString(ptr->d_name) == JNI_FALSE) {
+            continue;
+        }
+        // END IKSWO-65934
 #ifdef MACOSX
         name = newStringPlatform(env, ptr->d_name);
 #else
