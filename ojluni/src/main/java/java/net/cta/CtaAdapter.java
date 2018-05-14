@@ -32,8 +32,10 @@ class CtaAdapter {
             if (e.getCause() instanceof SecurityException) {
                 throw new SecurityException(e.getCause());
             }
-        } catch (Exception ee) {
-            System.out.println("ee:" + ee);
+        } catch (Throwable ee) {
+            if (ee instanceof NoClassDefFoundError) {
+                System.out.println("ee:" + ee);
+            }
         }
         return true;
 
