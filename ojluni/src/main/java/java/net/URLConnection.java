@@ -277,6 +277,9 @@ public abstract class URLConnection {
      */
     private int connectTimeout;
     private int readTimeout;
+    //** M: START for socket write timeout
+    private int writeTimeout;
+    //** M: END
 
     /**
      * @since 1.6
@@ -453,6 +456,41 @@ public abstract class URLConnection {
     public int getReadTimeout() {
         return readTimeout;
     }
+
+    //** M: START for socket write timeout
+    /**
+     * Sets the write timeout to a specified timeout, in
+     * milliseconds. A non-zero value specifies the timeout when
+     * writing to Output stream when a connection is established to a
+     * resource. If the timeout expires before there is data written
+     * , a java.net.SocketTimeoutException is raised. A
+     * timeout of zero is interpreted as an infinite timeout.
+     *
+     * @param timeout an {@code int} that specifies the timeout
+     * value to be used in milliseconds
+     * @throws IllegalArgumentException if the timeout parameter is negative
+     *
+     * @hide
+     */
+    public void setWriteTimeout(int timeout) {
+        if (timeout < 0) {
+            throw new IllegalArgumentException("timeout can not be negative");
+        }
+        writeTimeout = timeout;
+    }
+
+    /**
+     * Returns setting for write timeout. 0 return implies that the
+     * option is disabled (i.e., timeout of infinity).
+     *
+     * @return an {@code int} that indicates the write timeout
+     *         value in milliseconds
+     * @hide
+     */
+    public int getWriteTimeout() {
+      return writeTimeout;
+    }
+    //** M: END
 
     /**
      * Constructs a URL connection to the specified URL. A connection to
