@@ -38,23 +38,30 @@
 
 
 static jstring MTKStringFactory_newStringFromUTF8Bytes(JNIEnv* env, jclass, jbyteArray java_data,
-                                                jint offset, jint byte_count) {
+    jint offset, jint byte_count) {
   // Local Define in here
   static const jchar REPLACEMENT_CHAR = 0xfffd;
   static const int DEFAULT_BUFFER_SIZE = 256;
+  static const int TABLE_UTF8_NEEDED[] = {
+    //      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+    0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 0xc0 - 0xcf
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 0xd0 - 0xdf
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, // 0xe0 - 0xef
+    3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0xf0 - 0xff
+  };
 
   if (java_data == nullptr && offset == 0 && byte_count == 0) {
     jniThrowExceptionFmt(env, "java/lang/StringIndexOutOfBoundsException",
-     "offset=%d; byte_count=%d", offset, byte_count);
+        "offset=%d; byte_count=%d", offset, byte_count);
     return nullptr;
   }
 
-  jbyte* jRawArray = env->GetByteArrayElements(java_data, NULL);
+  jbyte *jRawArray = env->GetByteArrayElements(java_data, NULL);
   if (jRawArray != nullptr) {
     // Initial value
     jchar temp_buffer[DEFAULT_BUFFER_SIZE];
-    jbyte* d = jRawArray;
-    jchar* v;
+    jbyte *d = jRawArray;
+    jchar *v;
     bool v_need_free = false;
     if (byte_count <= DEFAULT_BUFFER_SIZE) {
       v = temp_buffer;
@@ -67,278 +74,97 @@ static jstring MTKStringFactory_newStringFromUTF8Bytes(JNIEnv* env, jclass, jbyt
     int last = offset + byte_count;
     int s = 0;
 
-    // OUTER LEBAL
-    outer:
-
+    int codePoint = 0;
+    int utf8BytesSeen = 0;
+    int utf8BytesNeeded = 0;
+    int lowerBound = 0x80;
+    int upperBound = 0xbf;
     while (idx < last) {
-      jbyte b0 = d[idx++];
-      if ((b0 & 0x80) == 0) {
-        // 0xxxxxxx
-        // Range:  U-00000000 - U-0000007F
-        int val = b0 & 0xff;
-        v[s++] = (jchar) val;
-      } else if ((b0 & 0xe0) == 0xc0) {
-        if (idx + 1 > last) {
-          v[s++] = REPLACEMENT_CHAR;
+      int b = d[idx++] & 0xff;
+      if (utf8BytesNeeded == 0) {
+        if ((b & 0x80) == 0) { // ASCII char. 0xxxxxxx
+          v[s++] = (jchar) b;
           continue;
         }
-        // Extract usable bits from b0
-        int val = b0 & 0x1f;
-        jbyte b = d[idx++];
-        if ((b & 0xc0) != 0x80) {
-          v[s++] = REPLACEMENT_CHAR;
-          idx--;  // Put the input char back
-          goto outer;
-        }
-        // Push new bits in from the right side
-        val <<= 6;
-        val |= b & 0x3f;
-        // Allow surrogate values (0xD800 - 0xDFFF) to
-        // be specified using 3-byte UTF values only
-        if ((val >= 0xD800) && (val <= 0xDFFF)) {
-          v[s++] = REPLACEMENT_CHAR;
-          continue;
-        }
-        // Reject chars greater than the Unicode maximum of U+10FFFF.
-        if (val > 0x10FFFF) {
-          v[s++] = REPLACEMENT_CHAR;
-          continue;
-        }
-        // Encode chars from U+10000 up as surrogate pairs
-        if (val < 0x10000) {
-          v[s++] = (jchar) val;
-        } else {
-          int x = val & 0xffff;
-          int u = (val >> 16) & 0x1f;
-          int w = (u - 1) & 0xffff;
-          int hi = 0xd800 | (w << 6) | (x >> 10);
-          int lo = 0xdc00 | (x & 0x3ff);
-          v[s++] = (jchar) hi;
-          v[s++] = (jchar) lo;
-        }
-      } else if ((b0 & 0xf0) == 0xe0) {
-        if (idx + 2 > last) {
-          v[s++] = REPLACEMENT_CHAR;
-          continue;
-        }
-        // Extract usable bits from b0
-        int val = b0 & (0x1f >> 1);
-        for (int i = 0; i < 2; ++i) {
-          jbyte b = d[idx++];
-          if ((b & 0xc0) != 0x80) {
-            v[s++] = REPLACEMENT_CHAR;
-            idx--;  // Put the input char back
-            goto outer;
-          }
-          // Push new bits in from the right side
-          val <<= 6;
-          val |= b & 0x3f;
-        }
-        // Reject chars greater than the Unicode maximum of U+10FFFF.
-        if (val > 0x10FFFF) {
-          v[s++] = REPLACEMENT_CHAR;
-          continue;
-        }
-        // Encode chars from U+10000 up as surrogate pairs
-        if (val < 0x10000) {
-          v[s++] = (jchar) val;
-        } else {
-          int x = val & 0xffff;
-          int u = (val >> 16) & 0x1f;
-          int w = (u - 1) & 0xffff;
-          int hi = 0xd800 | (w << 6) | (x >> 10);
-          int lo = 0xdc00 | (x & 0x3ff);
-          v[s++] = (jchar) hi;
-          v[s++] = (jchar) lo;
-        }
-      } else if ((b0 & 0xf8) == 0xf0) {
-        if (idx + 3 > last) {
-          v[s++] = REPLACEMENT_CHAR;
-          continue;
-        }
-        // Extract usable bits from b0
-        int val = b0 & (0x1f >> 2);
-        for (int i = 0; i < 3; ++i) {
-          jbyte b = d[idx++];
-          if ((b & 0xc0) != 0x80) {
-            v[s++] = REPLACEMENT_CHAR;
-            idx--;  // Put the input char back
-            goto outer;
-          }
-          // Push new bits in from the right side
-          val <<= 6;
-          val |= b & 0x3f;
-        }
-        // Allow surrogate values (0xD800 - 0xDFFF) to
-        // be specified using 3-byte UTF values only
-        if ((val >= 0xD800) && (val <= 0xDFFF)) {
-          v[s++] = REPLACEMENT_CHAR;
-          continue;
-        }
-        // Reject chars greater than the Unicode maximum of U+10FFFF.
-        if (val > 0x10FFFF) {
-          v[s++] = REPLACEMENT_CHAR;
-          continue;
-        }
-        // Encode chars from U+10000 up as surrogate pairs
-        if (val < 0x10000) {
-          v[s++] = (jchar) val;
-        } else {
-          int x = val & 0xffff;
-          int u = (val >> 16) & 0x1f;
-          int w = (u - 1) & 0xffff;
-          int hi = 0xd800 | (w << 6) | (x >> 10);
-          int lo = 0xdc00 | (x & 0x3ff);
-          v[s++] = (jchar) hi;
-          v[s++] = (jchar) lo;
-        }
-      } else if ((b0 & 0xfc) == 0xf8) {
-        if (idx + 4 > last) {
-          v[s++] = REPLACEMENT_CHAR;
-          continue;
-        }
-        // Extract usable bits from b0
-        int val = b0 & (0x1f >> 3);
-        for (int i = 0; i < 4; ++i) {
-          jbyte b = d[idx++];
-          if ((b & 0xc0) != 0x80) {
-            v[s++] = REPLACEMENT_CHAR;
-            idx--;  // Put the input char back
-            goto outer;
-          }
-          // Push new bits in from the right side
-          val <<= 6;
-          val |= b & 0x3f;
-        }
-        // Allow surrogate values (0xD800 - 0xDFFF) to
-        // be specified using 3-byte UTF values only
-        if ((val >= 0xD800) && (val <= 0xDFFF)) {
-          v[s++] = REPLACEMENT_CHAR;
-          continue;
-        }
-        // Reject chars greater than the Unicode maximum of U+10FFFF.
-        if (val > 0x10FFFF) {
-          v[s++] = REPLACEMENT_CHAR;
-          continue;
-        }
-        // Encode chars from U+10000 up as surrogate pairs
-        if (val < 0x10000) {
-          v[s++] = (jchar) val;
-        } else {
-          int x = val & 0xffff;
-          int u = (val >> 16) & 0x1f;
-          int w = (u - 1) & 0xffff;
-          int hi = 0xd800 | (w << 6) | (x >> 10);
-          int lo = 0xdc00 | (x & 0x3ff);
-          v[s++] = (jchar) hi;
-          v[s++] = (jchar) lo;
-        }
-      } else if ((b0 & 0xfe) == 0xfc) {
-        if (idx + 5 > last) {
-          v[s++] = REPLACEMENT_CHAR;
-          continue;
-        }
-        // Extract usable bits from b0
-        int val = b0 & (0x1f >> 4);
-        for (int i = 0; i < 5; ++i) {
-          jbyte b = d[idx++];
-          if ((b & 0xc0) != 0x80) {
-            v[s++] = REPLACEMENT_CHAR;
-            idx--;  // Put the input char back
-            goto outer;
-          }
-          // Push new bits in from the right side
-          val <<= 6;
-          val |= b & 0x3f;
-        }
-        // Allow surrogate values (0xD800 - 0xDFFF) to
-        // be specified using 3-byte UTF values only
-        if ((val >= 0xD800) && (val <= 0xDFFF)) {
-          v[s++] = REPLACEMENT_CHAR;
-          continue;
-        }
-        // Reject chars greater than the Unicode maximum of U+10FFFF.
-        if (val > 0x10FFFF) {
-          v[s++] = REPLACEMENT_CHAR;
-          continue;
-        }
-        // Encode chars from U+10000 up as surrogate pairs
-        if (val < 0x10000) {
-          v[s++] = (jchar) val;
-        } else {
-          int x = val & 0xffff;
-          int u = (val >> 16) & 0x1f;
-          int w = (u - 1) & 0xffff;
-          int hi = 0xd800 | (w << 6) | (x >> 10);
-          int lo = 0xdc00 | (x & 0x3ff);
-          v[s++] = (jchar) hi;
-          v[s++] = (jchar) lo;
-        }
-      /*
-      } else if (((b0 & 0xe0) == 0xc0) || ((b0 & 0xf0) == 0xe0) ||
-        ((b0 & 0xf8) == 0xf0) || ((b0 & 0xfc) == 0xf8) || ((b0 & 0xfe) == 0xfc)) {
-        int utfCount = 1;
-        if ((b0 & 0xf0) == 0xe0) utfCount = 2;
-        else if ((b0 & 0xf8) == 0xf0) utfCount = 3;
-        else if ((b0 & 0xfc) == 0xf8) utfCount = 4;
-        else if ((b0 & 0xfe) == 0xfc) utfCount = 5;
 
-        if (idx + utfCount > last) {
+        if ((b & 0x40) == 0) { // 10xxxxxx is illegal as first byte
           v[s++] = REPLACEMENT_CHAR;
           continue;
         }
 
-        // Extract usable bits from b0
-        int val = b0 & (0x1f >> (utfCount - 1));
-        for (int i = 0; i < utfCount; ++i) {
-          jbyte b = d[idx++];
-          if ((b & 0xc0) != 0x80) {
-            v[s++] = REPLACEMENT_CHAR;
-            idx--; // Put the input char back
-            goto outer;
-          }
-          // Push new bits in from the right side
-          val <<= 6;
-          val |= b & 0x3f;
-        }
-
-        // Allow surrogate values (0xD800 - 0xDFFF) to
-        // be specified using 3-byte UTF values only
-        if ((utfCount != 2) && (val >= 0xD800) && (val <= 0xDFFF)) {
+        // 11xxxxxx
+        int tableLookupIndex = b & 0x3f;
+        utf8BytesNeeded = TABLE_UTF8_NEEDED[tableLookupIndex];
+        if (utf8BytesNeeded == 0) {
           v[s++] = REPLACEMENT_CHAR;
           continue;
         }
 
-        // Reject chars greater than the Unicode maximum of U+10FFFF.
-        if (val > 0x10FFFF) {
-          v[s++] = REPLACEMENT_CHAR;
-          continue;
+        // utf8BytesNeeded
+        // 1: b & 0x1f
+        // 2: b & 0x0f
+        // 3: b & 0x07
+        codePoint = b & (0x3f >> utf8BytesNeeded);
+        if (b == 0xe0) {
+          lowerBound = 0xa0;
+        } else if (b == 0xed) {
+          upperBound = 0x9f;
+        } else if (b == 0xf0) {
+          lowerBound = 0x90;
+        } else if (b == 0xf4) {
+          upperBound = 0x8f;
         }
-
-        // Encode chars from U+10000 up as surrogate pairs
-        if (val < 0x10000) {
-          v[s++] = (jchar) val;
-        } else {
-          int x = val & 0xffff;
-          int u = (val >> 16) & 0x1f;
-          int w = (u - 1) & 0xffff;
-          int hi = 0xd800 | (w << 6) | (x >> 10);
-          int lo = 0xdc00 | (x & 0x3ff);
-          v[s++] = (jchar) hi;
-          v[s++] = (jchar) lo;
-        }
-      */
       } else {
-        // Illegal values 0x8*, 0x9*, 0xa*, 0xb*, 0xfd-0xff
-        v[s++] = REPLACEMENT_CHAR;
+        if (b < lowerBound || b > upperBound) {
+          // The bytes seen are ill-formed. Substitute them with U+FFFD
+          v[s++] = REPLACEMENT_CHAR;
+          codePoint = 0;
+          utf8BytesNeeded = 0;
+          utf8BytesSeen = 0;
+          lowerBound = 0x80;
+          upperBound = 0xbf;
+          /*
+           * According to the Unicode Standard,
+           * "a UTF-8 conversion process is required to never consume well-formed
+           * subsequences as part of its error handling for ill-formed subsequences"
+           * The current byte could be part of well-formed subsequences. Reduce the
+           * index by 1 to parse it in next loop.
+           */
+          idx--;
+          continue;
+        }
+
+        lowerBound = 0x80;
+        upperBound = 0xbf;
+        codePoint = (codePoint << 6) | (b & 0x3f);
+        utf8BytesSeen++;
+        if (utf8BytesNeeded != utf8BytesSeen) {
+          continue;
+        }
+
+        // Encode chars from U+10000 up as surrogate pairs
+        if (codePoint < 0x10000) {
+          v[s++] = (jchar) codePoint;
+        } else {
+          v[s++] = (jchar) ((codePoint >> 10) + 0xd7c0);
+          v[s++] = (jchar) ((codePoint & 0x3ff) + 0xdc00);
+        }
+
+        utf8BytesSeen = 0;
+        utf8BytesNeeded = 0;
+        codePoint = 0;
       }
+    }
+    // The bytes seen are ill-formed. Substitute them by U+FFFD
+    if (utf8BytesNeeded != 0) {
+      v[s++] = REPLACEMENT_CHAR;
     }
     // Result handling
     // Release the orig. buffer
     env->ReleaseByteArrayElements(java_data, jRawArray, JNI_ABORT);
     if (env->ExceptionCheck() == JNI_TRUE) {
       if (v_need_free) {
-        delete [] v;
+        delete[] v;
       }
       return nullptr;
     }
@@ -347,10 +173,11 @@ static jstring MTKStringFactory_newStringFromUTF8Bytes(JNIEnv* env, jclass, jbyt
 
     // Free the template char array.
     if (v_need_free) {
-      delete [] v;
+      delete[] v;
     }
     return rtn;
   }
+
   return nullptr;
 }
 
