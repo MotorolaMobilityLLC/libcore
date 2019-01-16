@@ -3012,6 +3012,33 @@ public final class String
         return Integer.toString(i);
     }
 
+    //Tinno:CJ use for debug.
+    /**
+     * Returns the string representation of the {@code int[]} argument.
+     * <p>
+     * The representation is exactly the one returned by the
+     * {@code Integer.toString} method of one argument.
+     *
+     * @param   i   an {@code int[]}.
+     * @return  a string representation of the {@code int[]} argument.
+     * @see     java.lang.Integer#toString(int, int)
+     */
+    public static String valueOf(int[] i) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("array:[");
+        sb.append(i.length);
+        sb.append(":");
+        for (int ii : i) {
+            sb.append("'");
+            sb.append(valueOf(ii));
+            sb.append("'");
+            sb.append(",");
+        }
+        sb.append("]");
+
+        return sb.toString();
+    }
+
     /**
      * Returns the string representation of the {@code long} argument.
      * <p>
