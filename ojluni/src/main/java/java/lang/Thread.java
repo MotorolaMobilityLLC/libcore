@@ -27,6 +27,8 @@
 package java.lang;
 
 import dalvik.annotation.optimization.FastNative;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
@@ -272,6 +274,11 @@ class Thread implements Runnable {
      *
      * @return  the currently executing thread.
      */
+
+    private static boolean isDebuggable = false; // Motorola, chenym7, 1/22/2019, IKSWP-56942
+
+    private static Runnable forThread = null; // Motorola, chenym7, 1/22/2019, IKSWP-56942
+
     @FastNative
     public static native Thread currentThread();
 
@@ -732,6 +739,16 @@ class Thread implements Runnable {
         try {
             nativeCreate(this, stackSize, daemon);
             started = true;
+        // BEGIN Motorola, chenym7, 1/22/2019, IKSWP-56942
+        } catch (OutOfMemoryError oom) {
+            if (forThread != null) {
+                forThread.run();
+            }
+            if (isDebuggable) {
+                doSysRq('c');
+            }
+            throw oom;
+        // END IKSWP-56942
         } finally {
             try {
                 if (!started) {
@@ -746,6 +763,23 @@ class Thread implements Runnable {
 
     private native static void nativeCreate(Thread t, long stackSize, boolean daemon);
 
+
+    // BEGIN Motorola, chenym7, 1/22/2019, IKSWP-56942
+    private void doSysRq(char c) {
+        try {
+            FileWriter sysrq_trigger = new FileWriter("/proc/sysrq-trigger");
+            sysrq_trigger.write(c);
+            sysrq_trigger.close();
+        } catch (IOException e) {
+        }
+    }
+
+    /** @hide */
+    public static void markDebuggable(Runnable r) {
+        isDebuggable = true;
+        forThread = r;
+    }
+    // END IKSWP-56942
     /**
      * If this thread was constructed using a separate
      * <code>Runnable</code> run object, then that
