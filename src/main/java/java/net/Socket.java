@@ -36,6 +36,13 @@ import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
 import java.security.PrivilegedAction;
 
+//TINNO BEGIN
+//AUTHOR: jonny.peng@tinno.com
+//DESC: Add for socket debug
+//DATE: 2019/2/18
+import libcore.io.IoBridge;
+//TINNO END
+
 /**
  * This class implements client sockets (also called just
  * "sockets"). A socket is an endpoint for communication
@@ -75,6 +82,14 @@ class Socket implements java.io.Closeable {
      * Are we using an older SocketImpl?
      */
     private boolean oldImpl = false;
+
+    //TINNO BEGIN
+    //AUTHOR: jonny.peng@tinno.com
+    //DESC: Add for socket debug
+    //DATE: 2019/2/18
+    private InetAddress localAddress = Inet6Address.ANY;
+    private static long sIndex = 0;
+    //TINNO END
 
     /**
      * Creates an unconnected socket, with the
@@ -625,18 +640,36 @@ class Socket implements java.io.Closeable {
             else
                 security.checkConnect(addr.getHostAddress(), port);
         }
-        if (!created)
-            createImpl(true);
-        if (!oldImpl)
-            impl.connect(epoint, timeout);
-        else if (timeout == 0) {
-            if (epoint.isUnresolved())
-                impl.connect(addr.getHostName(), port);
-            else
-                impl.connect(addr, port);
-        } else
-            throw new UnsupportedOperationException("SocketImpl.connect(addr, timeout)");
+
+        //TINNO BEGIN
+        //AUTHOR: jonny.peng@tinno.com
+        //DESC: Add for socket debug
+        //DATE: 2019/2/18
+        sIndex = sIndex + 1;
+        long localIndex = sIndex; // use local var to solve multi threading issue
+        System.out.println("[socket][" + localIndex + "] connection "
+                + endpoint + ";LocalPort=" + getLocalPort() + "(" + timeout + ")");
+        try {
+            if (!created)
+                createImpl(true);
+            if (!oldImpl)
+                impl.connect(epoint, timeout);
+            else if (timeout == 0) {
+                if (epoint.isUnresolved())
+                    impl.connect(addr.getHostName(), port);
+                else
+                    impl.connect(addr, port);
+            } else
+                throw new UnsupportedOperationException("SocketImpl.connect(addr, timeout)");
+
+        } catch (Exception e) {
+            System.out.println("[socket][" + localIndex + "] connection to " + endpoint + " failed with exception " + e);
+            throw e;
+        }
+        cacheLocalAddress();
         connected = true;
+        System.out.println("[socket][" + localIndex + "] " + "endpoint=" + endpoint + ";LocalAddress="+ this.localAddress + ":" + getLocalPort() + " connected");
+        //TINNO END
         /// M: debug logging
         if (DebugUtils.isDebugLogOn()) {
             InetSocketAddress isa = libcore.io.IoBridge.getLocalInetSocketAddress(impl.fd);
@@ -691,6 +724,12 @@ class Socket implements java.io.Closeable {
             security.checkListen(port);
         }
         getImpl().bind (addr, port);
+        //TINNO BEGIN
+        //AUTHOR: jonny.peng@tinno.com
+        //DESC: Add for socket debug
+        //DATE: 2019/2/18
+        cacheLocalAddress();
+        //TINNO END
         bound = true;
     }
 
@@ -702,6 +741,15 @@ class Socket implements java.io.Closeable {
             throw new IllegalArgumentException(op + ": invalid address type");
         }
     }
+
+    //TINNO BEGIN
+    //AUTHOR: jonny.peng@tinno.com
+    //DESC: Add for socket debug
+    //DATE: 2019/2/18
+    private void cacheLocalAddress() throws SocketException {
+        this.localAddress = getLocalAddress();
+    }
+    //TINNO END
 
     /**
      * set the flags after an accept() call.
