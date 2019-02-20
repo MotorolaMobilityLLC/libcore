@@ -36,6 +36,9 @@ import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
 import java.security.PrivilegedAction;
 
+//Tinno:CJ
+import java.journey.JourneyJavaFeature;
+
 //TINNO BEGIN
 //AUTHOR: jonny.peng@tinno.com
 //DESC: Add for socket debug
@@ -88,7 +91,9 @@ class Socket implements java.io.Closeable {
     //DESC: Add for socket debug
     //DATE: 2019/2/18
     private InetAddress localAddress = Inet6Address.ANY;
+    private String description;
     private static long sIndex = 0;
+    private long localIndex;
     //TINNO END
 
     /**
@@ -645,10 +650,12 @@ class Socket implements java.io.Closeable {
         //AUTHOR: jonny.peng@tinno.com
         //DESC: Add for socket debug
         //DATE: 2019/2/18
-        sIndex = sIndex + 1;
-        long localIndex = sIndex; // use local var to solve multi threading issue
-        System.out.println("[socket][" + localIndex + "] connection "
-                + endpoint + ";LocalPort=" + getLocalPort() + "(" + timeout + ")");
+        if(JourneyJavaFeature.JOURNEY_DEBUG_ENHANCED) {
+            sIndex = sIndex + 1;
+            localIndex = sIndex; // use local var to solve multi threading issue
+            description = "[socket][" + localIndex + "] connect to " + endpoint + "(" + timeout + " ms)";
+            System.out.println(description);
+        }
         try {
             if (!created)
                 createImpl(true);
@@ -663,12 +670,17 @@ class Socket implements java.io.Closeable {
                 throw new UnsupportedOperationException("SocketImpl.connect(addr, timeout)");
 
         } catch (Exception e) {
-            System.out.println("[socket][" + localIndex + "] connection to " + endpoint + " failed with exception " + e);
+            if(JourneyJavaFeature.JOURNEY_DEBUG_ENHANCED) {
+                System.out.println(description + " failed with exception " + e);
+            }
             throw e;
         }
-        cacheLocalAddress();
         connected = true;
-        System.out.println("[socket][" + localIndex + "] " + "endpoint=" + endpoint + ";LocalAddress="+ this.localAddress + ":" + getLocalPort() + " connected");
+        if(JourneyJavaFeature.JOURNEY_DEBUG_ENHANCED) {
+            // also will use in close()
+            description = "[socket][" + localIndex + "] " + endpoint + ";LocalAddress="+ getLocalAddress() + ":" + getLocalPort();
+            System.out.println(description + " connected");
+        }
         //TINNO END
         /// M: debug logging
         if (DebugUtils.isDebugLogOn()) {
@@ -724,12 +736,6 @@ class Socket implements java.io.Closeable {
             security.checkListen(port);
         }
         getImpl().bind (addr, port);
-        //TINNO BEGIN
-        //AUTHOR: jonny.peng@tinno.com
-        //DESC: Add for socket debug
-        //DATE: 2019/2/18
-        cacheLocalAddress();
-        //TINNO END
         bound = true;
     }
 
@@ -741,15 +747,6 @@ class Socket implements java.io.Closeable {
             throw new IllegalArgumentException(op + ": invalid address type");
         }
     }
-
-    //TINNO BEGIN
-    //AUTHOR: jonny.peng@tinno.com
-    //DESC: Add for socket debug
-    //DATE: 2019/2/18
-    private void cacheLocalAddress() throws SocketException {
-        this.localAddress = getLocalAddress();
-    }
-    //TINNO END
 
     /**
      * set the flags after an accept() call.
@@ -1607,6 +1604,12 @@ class Socket implements java.io.Closeable {
                     System.out.println(
                             "close [socket][" + isa.getAddress() + ":" + getLocalPort() + "]");
                 }
+                // TINNO BEGIN
+                // Added by cyong on Apr.28 , 2017 for socket debug
+                if(JourneyJavaFeature.JOURNEY_DEBUG_ENHANCED) {
+                    System.out.println(description + " closed");
+                }
+                // TINNO END
                 impl.close();
             }
             closed = true;

@@ -3,6 +3,9 @@ filegroup {
     export_to_make_var: "openjdk_javadoc_files",
     path: "ojluni/src/lambda/java",
     srcs: [
+        //Tinno:CJ add our java files
+        "ojluni/src/main/java/java/journey/*.java",
+
         "ojluni/src/main/java/java/awt/font/NumericShaper.java",
         "ojluni/src/main/java/java/awt/font/TextAttribute.java",
         "ojluni/src/main/java/java/beans/IndexedPropertyChangeEvent.java",
