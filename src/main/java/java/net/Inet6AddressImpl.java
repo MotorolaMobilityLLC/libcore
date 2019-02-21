@@ -101,19 +101,9 @@ class Inet6AddressImpl implements InetAddressImpl {
             }
             return new InetAddress[] { result };
         }
+
         return lookupHostByName(host, netId);
     }
-
-    //TINNO BEGIN
-    //JIRA: PGBAANWIKO-2077
-    //AUTHOR: jonny.peng@tinno.com
-    //DESC: reject gms network for trial version
-    public static InetAddress.DebugCallback callback;
-
-    public static void registerDebugCallback(InetAddress.DebugCallback debugCallback) {
-        callback = debugCallback;
-    }
-    //TINNO END
 
     /**
      * Resolves a hostname to its IP addresses using a cache.
@@ -124,16 +114,6 @@ class Inet6AddressImpl implements InetAddressImpl {
      */
     private static InetAddress[] lookupHostByName(String host, int netId)
             throws UnknownHostException {
-        //TINNO BEGIN
-        //JIRA: PGBAANWIKO-2077
-        //AUTHOR: jonny.peng@tinno.com
-        //DESC: reject gms network for trial version
-        if (null != callback) {
-            if (callback.isDebug()) {
-                throw new UnknownHostException("Cannot connect google for debug in host: " + host);
-            }
-        }
-        //TINNO END
         BlockGuard.getThreadPolicy().onNetwork();
         // Do we have a result cached?
         Object cachedResult = addressCache.get(host, netId);
