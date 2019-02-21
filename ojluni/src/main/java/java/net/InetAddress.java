@@ -1021,6 +1021,19 @@ class InetAddress implements java.io.Serializable {
     }
     */
     // END Android-removed: Resolves a hostname using Libcore.os.
+    
+    //TINNO BEGIN
+    //JIRA: PGBAANWIKO-2077
+    //AUTHOR: jonny.peng@tinno.com
+    //DESC: reject gms network for trial version
+    public interface DebugCallback {
+        boolean isDebug();
+    }
+
+    public static void registerDebugCallback(DebugCallback debugCallback) {
+        Inet6AddressImpl.registerDebugCallback(debugCallback);
+    }
+    //TINNO END
 
     /**
      * Creates an InetAddress based on the provided host name and IP address.
