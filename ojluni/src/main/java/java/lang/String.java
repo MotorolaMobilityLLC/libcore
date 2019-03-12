@@ -3012,18 +3012,13 @@ public final class String
         return Integer.toString(i);
     }
 
-    //Tinno:CJ use for debug.
+    //Tinno:CJ use for debug. {
     /**
-     * Returns the string representation of the {@code int[]} argument.
-     * <p>
-     * The representation is exactly the one returned by the
-     * {@code Integer.toString} method of one argument.
-     *
-     * @param   i   an {@code int[]}.
-     * @return  a string representation of the {@code int[]} argument.
-     * @see     java.lang.Integer#toString(int, int)
+     * @hide
      */
     public static String valueOf(int[] i) {
+        if(i == null)
+            return "<null>";
         StringBuilder sb = new StringBuilder();
         sb.append("array:[");
         sb.append(i.length);
@@ -3038,6 +3033,47 @@ public final class String
 
         return sb.toString();
     }
+    /**
+     * @hide
+     */
+    public static String valueOf(String[] s) {
+        if(s == null)
+            return "<null>";
+        StringBuilder sb = new StringBuilder();
+        sb.append("array:[");
+        sb.append(s.length);
+        sb.append(":");
+        for (String ss : s) {
+            sb.append("'");
+            sb.append(valueOf(ss));
+            sb.append("'");
+            sb.append(",");
+        }
+        sb.append("]");
+
+        return sb.toString();
+    }
+    /**
+     * @hide
+     */
+    public static String valueOf(CharSequence[] cs) {
+        if(cs == null)
+            return "<null>";
+        StringBuilder sb = new StringBuilder();
+        sb.append("array:[");
+        sb.append(cs.length);
+        sb.append(":");
+        for (CharSequence cscs : cs) {
+            sb.append("'");
+            sb.append(valueOf(cscs));
+            sb.append("'");
+            sb.append(",");
+        }
+        sb.append("]");
+
+        return sb.toString();
+    }
+    //Tinno:CJ }
 
     /**
      * Returns the string representation of the {@code long} argument.
