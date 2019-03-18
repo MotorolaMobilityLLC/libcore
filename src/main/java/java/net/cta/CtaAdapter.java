@@ -19,7 +19,7 @@ class CtaAdapter {
         try {
             if (enforceCheckPermissionMethod == null) {
                 String jarPath = "system/framework/mediatek-cta.jar";
-                ClassLoader classLoader = new PathClassLoader(jarPath, ClassLoader.getSystemClassLoader());
+                ClassLoader classLoader = new PathClassLoader(jarPath, CtaAdapter.class.getClassLoader());
                 String className = "com.mediatek.cta.CtaHttp";
 
                 Class<?> cls = Class.forName(className, false, classLoader);
