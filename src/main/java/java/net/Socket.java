@@ -30,7 +30,8 @@ import java.io.FileDescriptor;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
-import java.net.cta.CtaAdapter;
+//Tinno:CJ remove this hardcode, because we will never use any CTA module
+//import java.net.cta.CtaAdapter;
 import java.nio.channels.SocketChannel;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
@@ -629,6 +630,8 @@ class Socket implements java.io.Closeable {
         int port = epoint.getPort();
         checkAddress(addr, "connect");
 
+        //Tinno:CJ remove this hardcode, because we will never use any CTA module
+        /*
         ///M: Support Mom Check @{
         synchronized (Socket.class) {
             if (!CtaAdapter.isSendingPermitted(port)) {
@@ -637,6 +640,7 @@ class Socket implements java.io.Closeable {
             }
         }
         ///@}
+        */
 
         SecurityManager security = System.getSecurityManager();
         if (security != null) {
