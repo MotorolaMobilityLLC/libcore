@@ -162,6 +162,10 @@ class FileInputStream extends InputStream
         // Android-added: BlockGuard support.
         BlockGuard.getThreadPolicy().onReadFromDisk();
 
+/*
+        if(name.equals("/sys/class/net/wlan0/address"))
+            Thread.dumpStack();
+*/
         open(name);
 
         // Android-added: CloseGuard support.
