@@ -28,6 +28,8 @@ application/x-webarchive webarchive
 application/x-webarchive-xml webarchivexml
 application/x-x509-server-cert crt
 application/x-x509-user-cert crt
+application/vnd.oma.drm.content dcf
+application/vnd.oma.drm.message dm
 
 audio/3gpp 3gpp
 audio/aac-adts aac
@@ -39,6 +41,10 @@ audio/mpegurl m3u
 audio/sp-midi smf
 audio/x-matroska mka
 audio/x-pn-realaudio ra
+audio/ape ape
+audio/mpeg mp2
+audio/caf caf
+audio/adpcm wav
 
 image/bmp bmp
 image/heic heic
@@ -70,6 +76,15 @@ video/m4v m4v
 video/mp2p mpeg
 video/mp2ts ts
 video/x-webex wrf
+video/x-flv flv
+video/x-flv f4v
+video/x-flv pfv
+video/x-flv fla
+video/mp2p ps
+video/mp2p vob
+video/mp2p dat
+
+cta/mudp mudp
 
 # Special cases where Android has a strong opinion about mappings, so we
 # define them very last and use "!" to ensure that we force the mapping
