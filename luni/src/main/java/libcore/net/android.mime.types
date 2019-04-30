@@ -45,6 +45,13 @@ audio/ape ape
 audio/mpeg mp2
 audio/caf caf
 audio/adpcm wav
+audio/3gpp 3gp
+audio/3gpp 3ga
+audio/quicktime mov
+audio/quicktime qt
+audio/wav wav
+audio/vorbis ogg
+audio/webm ogg
 
 image/bmp bmp
 image/heic heic
@@ -61,6 +68,7 @@ image/x-panasonic-rw2 rw2
 image/x-pentax-pef pef
 image/x-samsung-srw srw
 image/x-sony-arw arw
+image/mpo mpo
 
 text/comma-separated-values csv
 text/plain diff po
@@ -83,6 +91,12 @@ video/x-flv fla
 video/mp2p ps
 video/mp2p vob
 video/mp2p dat
+video/mp2ts mts
+video/mp2ts m2ts
+video/quicktime mov
+video/quicktime qt
+video/ogm ogv
+video/ogm ogm
 
 cta/mudp mudp
 
