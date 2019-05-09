@@ -3033,6 +3033,28 @@ public final class String
 
         return sb.toString();
     }
+
+    /**
+     * @hide
+     */
+    public static String valueOf(long[] l) {
+        if(l == null)
+            return "<null>";
+        StringBuilder sb = new StringBuilder();
+        sb.append("array:[");
+        sb.append(l.length);
+        sb.append(":");
+        for (long ll : l) {
+            sb.append("'");
+            sb.append(valueOf(ll));
+            sb.append("'");
+            sb.append(",");
+        }
+        sb.append("]");
+
+        return sb.toString();
+    }
+
     /**
      * @hide
      */
@@ -3053,6 +3075,7 @@ public final class String
 
         return sb.toString();
     }
+
     /**
      * @hide
      */
