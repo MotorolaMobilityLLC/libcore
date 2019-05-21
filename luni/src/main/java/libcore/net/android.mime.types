@@ -85,7 +85,12 @@ audio/aac aac!
 audio/basic snd!
 audio/flac flac!
 audio/midi rtx!
+# Motorola, dvw873, 05/09/2016, IKSWM-36757/IKSWM-38174
+audio/mp3 mp3
 audio/mpeg mp3! m4a m4r
+# BEGIN Motorola, a16448, May13/2013, IKJBXLINE-8517
+audio/qcelp qcp
+# END   Motorola, a16448, May13/2013, IKJBXLINE-8517
 audio/x-mpegurl m3u8! m3u!
 image/jpeg jpg!
 image/x-ms-bmp bmp!
