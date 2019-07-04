@@ -3058,6 +3058,27 @@ public final class String
     /**
      * @hide
      */
+    public static String valueOf(float[] f) {
+        if(f == null)
+            return "<null>";
+        StringBuilder sb = new StringBuilder();
+        sb.append("array:[");
+        sb.append(f.length);
+        sb.append(":");
+        for (float ff : f) {
+            sb.append("'");
+            sb.append(valueOf(ff));
+            sb.append("'");
+            sb.append(",");
+        }
+        sb.append("]");
+
+        return sb.toString();
+    }
+
+    /**
+     * @hide
+     */
     public static String valueOf(String[] s) {
         if(s == null)
             return "<null>";
