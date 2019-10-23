@@ -889,26 +889,24 @@ public class BigInteger extends Number
         // length.
         int thisLen = bitLength();
         int valueLen = value.bitLength();
-        if (thisLen > GCD_DIRECT_RATIO * valueLen) {
-            // A division-based step is much more efficient than direct use of
-            // the binary algorithm.
+        final int gcdDirectRatio = 16;
+        if (thisLen > gcdDirectRatio * valueLen) {
+            // A division-based step reduces the length of this by a factor of at
+            // least gcdDirectRatio, thus ensuring that a division-based step will
+            // easily pay for itself.
             if (value.signum() == 0) {
-                return this;
+                return this.abs();
             }
-            return value.gcd(this.mod(value));
-        } else if (valueLen > GCD_DIRECT_RATIO * thisLen) {
+            return value.gcd(this.mod(value.abs()));
+        } else if (valueLen > gcdDirectRatio * thisLen) {
             if (signum() == 0) {
-                return value;
+                return value.abs();
             }
-            return this.gcd(value.mod(this));
+            return this.gcd(value.mod(this.abs()));
         }
 
         return new BigInteger(BigInt.gcd(getBigInt(), value.getBigInt()));
     }
-
-    // If gcd argument sizes differ by more than a factor of GCD_DIRECT_RATIO,
-    // use a division step before invoking the binary algorithm.
-    private static final int GCD_DIRECT_RATIO = 16;
 
     /**
      * Returns a {@code BigInteger} whose value is {@code this * value}.
