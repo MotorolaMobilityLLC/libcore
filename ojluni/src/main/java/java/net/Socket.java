@@ -637,13 +637,6 @@ class Socket implements java.io.Closeable {
         } else
             throw new UnsupportedOperationException("SocketImpl.connect(addr, timeout)");
         connected = true;
-        /// M: debug logging
-        if (DebugUtils.isDebugLogOn()) {
-            InetSocketAddress isa = libcore.io.IoBridge.getLocalInetSocketAddress(impl.fd);
-            System.out.println("[socket][" + isa.getAddress() + ":"
-                    + getLocalPort() + "] connected");
-        }
-
         /*
          * If the socket was not bound before the connect, it is now because
          * the kernel will have picked an ephemeral port & a local address
@@ -1552,15 +1545,8 @@ class Socket implements java.io.Closeable {
         synchronized(closeLock) {
             if (isClosed())
                 return;
-            if (created) {
-                /// M: debug logging
-                if (DebugUtils.isDebugLogOn()) {
-                    InetSocketAddress isa = libcore.io.IoBridge.getLocalInetSocketAddress(impl.fd);
-                    System.out.println(
-                            "close [socket][" + isa.getAddress() + ":" + getLocalPort() + "]");
-                }
+            if (created)
                 impl.close();
-            }
             closed = true;
         }
     }
