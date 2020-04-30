@@ -10,6 +10,14 @@ import java.lang.reflect.Method;
  * @hide
  */
 public final class CtaAdapter {
+
+    enum Value {
+      NULL_VALUE,
+      CTA_ENABLE,
+      CTA_DISABLE
+    };
+
+    private static Value flag = Value.NULL_VALUE;
     private static Method ctaPermissionChecker = null;
     private static String jarPath = "system/framework/mediatek-cta.jar";
     private static String className = "com.mediatek.cta.CtaUtils";
@@ -21,13 +29,14 @@ public final class CtaAdapter {
     public static boolean isSendingPermitted(int port) {
         System.out.println("[socket]:check permission begin!");
         try {
-            if (ctaPermissionChecker == null) {
+            if (ctaPermissionChecker == null && flag == Value.NULL_VALUE) {
                 ClassLoader classLoader = new PathClassLoader(jarPath,
                         CtaAdapter.class.getClassLoader());
                 Class<?> cls = Class.forName(className, false, classLoader);
                 ctaPermissionChecker = cls.getDeclaredMethod(methodName,
                         String.class, String.class);
                 ctaPermissionChecker.setAccessible(true);
+                flag = Value.CTA_ENABLE;
             }
 
             if (port == 25 || port == 465 || port == 587) {
@@ -35,6 +44,7 @@ public final class CtaAdapter {
             }
 
         } catch (ReflectiveOperationException e) {
+            flag = Value.CTA_DISABLE;
             System.out.println("[socket] e:" + e);
             if (e.getCause() instanceof SecurityException) {
                 throw new SecurityException(e.getCause());
@@ -43,6 +53,7 @@ public final class CtaAdapter {
             }
         } catch (Throwable ee) {
             if (ee instanceof NoClassDefFoundError) {
+                flag = Value.CTA_DISABLE;
                 System.out.println("[socket] ee:" + ee);
             }
         }
