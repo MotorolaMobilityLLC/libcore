@@ -431,7 +431,8 @@ public final class Daemons {
                 // just finished as we were timing out, in which case we may get null or a later
                 // one.  In this last case, we are very likely to discard it below.
                 Object finalizing = FinalizerDaemon.INSTANCE.finalizingObject;
-                sleepForMillis(500);
+                // Unisoc_FwStability: enlarge the finalizer timeout to avoid timeout in monkey test
+                sleepForMillis(5000);
                 // Recheck to make it even less likely we report the wrong finalizing object in
                 // the case which a very slow finalization just finished as we were timing out.
                 if (getNeedToWork()
