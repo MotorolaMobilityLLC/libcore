@@ -386,13 +386,13 @@ public final class UUID implements java.io.Serializable, Comparable<UUID> {
      * @return  A string representation of this {@code UUID}
      */
     public String toString() {
-        // BEGIN Motorola, linzj1, 2019-10-30, IKSWQ-24229
+        // BEGIN Motorola, linzj1, 2019-10-30, IKSWQ-24229 IKSWQ-119747
         // Support convert string similar to FE87-9640 to UUID
         if ((mostSigBits >> 16) == 0 && (leastSigBits >> 16) == 0) {
             return (digits(mostSigBits, 4) + "-" +
-                    digits(leastSigBits, 4));
+                    digits(leastSigBits, 4)).toUpperCase();
         }
-        // END IKSWQ-24229
+        // END IKSWQ-24229 IKSWQ-119747
         return (digits(mostSigBits >> 32, 8) + "-" +
                 digits(mostSigBits >> 16, 4) + "-" +
                 digits(mostSigBits, 4) + "-" +
