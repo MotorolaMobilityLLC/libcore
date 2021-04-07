@@ -22,11 +22,14 @@ import android.system.NetlinkSocketAddress;
 import android.system.Os;
 import android.system.OsConstants;
 import android.system.PacketSocketAddress;
+import android.system.StructCmsghdr;
+import android.system.StructMsghdr;
 import android.system.StructRlimit;
 import android.system.StructStat;
 import android.system.StructTimeval;
 import android.system.StructUcred;
 import android.system.UnixSocketAddress;
+import android.system.VmSocketAddress;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -45,6 +48,7 @@ import java.net.ServerSocket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
@@ -71,6 +75,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeNoException;
 import static org.junit.Assume.assumeTrue;
 
 @RunWith(JUnit4.class)
@@ -689,6 +694,89 @@ public class OsTest {
         Os.close(fd);
     }
 
+    @Test
+    public void test_VmSocketAddress() {
+        try {
+            final VmSocketAddress addr = new VmSocketAddress(111, 222);
+            assertEquals(111, addr.getSvmPort());
+            assertEquals(222, addr.getSvmCid());
+        } catch (UnsupportedOperationException ignore) {
+            assumeNoException(ignore);  // the platform does not support virtio-vsock
+        }
+    }
+
+    private static Thread createVmSocketEchoServer(final FileDescriptor serverFd) {
+        return new Thread(new Runnable() {
+            public void run() {
+                final VmSocketAddress peer =
+                    new VmSocketAddress(VMADDR_PORT_ANY, VMADDR_CID_ANY);
+
+                try {
+                    final FileDescriptor clientFd = Os.accept(serverFd, peer);
+                    try {
+                        final byte[] requestBuf = new byte[256];
+                        final int len = Os.read(clientFd, requestBuf, 0, requestBuf.length);
+                        final String request =
+                            new String(requestBuf, 0, len, StandardCharsets.UTF_8);
+                        final byte[] responseBuf =
+                            request.toUpperCase(Locale.ROOT).getBytes(StandardCharsets.UTF_8);
+                        Os.write(clientFd, responseBuf, 0, responseBuf.length);
+                    } finally {
+                        Os.close(clientFd);
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+    }
+
+    @Test
+    public void test_VmSocket() throws Exception {
+        try {
+            final VmSocketAddress serverAddr = new VmSocketAddress(12345, VMADDR_CID_LOCAL);
+
+            final FileDescriptor serverFd = Os.socket(AF_VSOCK, SOCK_STREAM, 0);
+
+            try {
+                Os.bind(serverFd, serverAddr);
+                Os.listen(serverFd, 3);
+
+                final Thread server = createVmSocketEchoServer(serverFd);
+                server.start();
+
+                final FileDescriptor clientFd = Os.socket(AF_VSOCK, SOCK_STREAM, 0);
+                try {
+                    Os.connect(clientFd, serverAddr);
+
+                    final String request = "hello, world!";
+                    final byte[] requestBuf = request.getBytes(StandardCharsets.UTF_8);
+
+                    assertEquals(requestBuf.length,
+                                 Os.write(clientFd, requestBuf, 0, requestBuf.length));
+
+                    final byte[] responseBuf = new byte[requestBuf.length];
+                    assertEquals(responseBuf.length,
+                                 Os.read(clientFd, responseBuf, 0, responseBuf.length));
+
+                    final String response = new String(responseBuf, StandardCharsets.UTF_8);
+
+                    assertEquals(request.toUpperCase(Locale.ROOT), response);
+                } finally {
+                    Os.close(clientFd);
+                }
+            } finally {
+                Os.close(serverFd);
+            }
+        } catch (UnsupportedOperationException ignore) {
+            assumeNoException(ignore);  // the platform does not support virtio-vsock
+        } catch (ErrnoException e) {
+            // the platform does not support vsock
+            assumeTrue(e.errno != EAFNOSUPPORT && e.errno != EACCES);
+            throw e;
+        }
+    }
+
     private static byte[] getIPv6AddressBytesAtOffset(byte[] packet, int offsetIndex) {
         byte[] address = new byte[16];
         System.arraycopy(packet, offsetIndex, address, 0, 16);
@@ -732,6 +820,262 @@ public class OsTest {
     @Test
     public void test_sendtoSocketAddress_af_inet6() throws Exception {
         checkSendToSocketAddress(AF_INET6, InetAddress.getByName("::1"));
+    }
+
+    /*
+     * Test case for sendmsg with/without GSO in loopback iface,
+     * recvmsg/gro would not happen since in loopback
+     */
+    private void checkSendmsgSocketAddress(int family, InetSocketAddress loopbackAddr,
+            StructMsghdr sendmsgHdr, StructMsghdr recvmsgHdr, int sendSize) throws Exception {
+
+        FileDescriptor sendFd = Os.socket(family, SOCK_DGRAM, 0);
+        FileDescriptor recvFd = Os.socket(family, SOCK_DGRAM, 0);
+        int rc = 0;
+
+        //recvmsg cleanup data
+        if (loopbackAddr.getAddress() instanceof Inet6Address) {
+            Os.bind(recvFd, Inet6Address.ANY, loopbackAddr.getPort());
+        } else {
+            Os.bind(recvFd, Inet4Address.ANY, loopbackAddr.getPort());
+        }
+
+        StructTimeval tv = StructTimeval.fromMillis(20);
+        Os.setsockoptTimeval(recvFd, SOL_SOCKET, SO_RCVTIMEO, tv);
+        Os.setsockoptInt(recvFd, IPPROTO_UDP, UDP_GRO, 1); //enable GRO
+        Os.setsockoptInt(recvFd, SOL_SOCKET, SO_RCVBUF, 1024 * 1024);
+
+        try {
+            assertEquals(sendSize, Os.sendmsg(sendFd, sendmsgHdr, 0));
+            rc = 0;
+            do {
+                int temp_rc = Os.recvmsg(recvFd, recvmsgHdr, OsConstants.MSG_TRUNC);
+                rc += temp_rc;
+                if (recvmsgHdr.msg_control != null && recvmsgHdr.msg_control.length > 0) {
+                    byte[] sendCmsgByte = sendmsgHdr.msg_control[0].cmsg_data;
+                    byte[] recvCmsgByte = recvmsgHdr.msg_control[0].cmsg_data;
+                    /* Note:
+                     * GSO: is set with Short(2Byte) values;
+                     * GRO: IP stack return with Int(4Bytes) value;
+                     */
+                    assertEquals(
+                            ByteBuffer.wrap(sendCmsgByte).order(
+                                    ByteOrder.nativeOrder()).getShort(0),
+                            ByteBuffer.wrap(recvCmsgByte).order(
+                                    ByteOrder.nativeOrder()).getInt(0));
+                }
+
+                recvmsgHdr = new StructMsghdr(recvmsgHdr.msg_name, recvmsgHdr.msg_iov,
+                                              null,
+                                              recvmsgHdr.msg_flags);
+            }while(rc < sendSize);
+        } finally {
+            Os.close(sendFd);
+            Os.close(recvFd);
+        }
+    }
+
+    @Test
+    public void test_sendmsg_af_inet_4K() throws Exception {
+        // UDP GRO not required to be enabled on kernels prior to 5.4
+        assumeTrue(kernelIsAtLeast(5, 4));
+
+        InetSocketAddress loopbackAddr = new InetSocketAddress(InetAddress.getByName("127.0.0.1"),
+                10234);
+        StructCmsghdr[] cmsg = new StructCmsghdr[1];
+        cmsg[0] = new StructCmsghdr(SOL_UDP, UDP_SEGMENT, (short) 1400);
+
+        //sendmsg/recvmsg with 1*4K ByteBuffer
+        ByteBuffer[] bufferArray = new ByteBuffer[1];
+        ByteBuffer[] bufferArrayRecv = new ByteBuffer[1];
+        bufferArray[0] = ByteBuffer.allocate(4096);
+        bufferArrayRecv[0] = ByteBuffer.allocate(4096);
+
+        StructMsghdr sendmsgHdr = new StructMsghdr(loopbackAddr,
+                                                   bufferArray,
+                                                   cmsg, 0);
+        StructMsghdr recvmsgHdr = new StructMsghdr(new InetSocketAddress(),
+                                                   bufferArrayRecv,
+                                                   null, 0);
+
+        checkSendmsgSocketAddress(AF_INET, loopbackAddr, sendmsgHdr, recvmsgHdr, 4096);
+    }
+
+    @Test
+    public void test_sendmsg_af_inet6_4K() throws Exception {
+        // UDP GRO not required to be enabled on kernels prior to 5.4
+        assumeTrue(kernelIsAtLeast(5, 4));
+
+        InetSocketAddress loopbackAddr = new InetSocketAddress(InetAddress.getByName("::1"), 10234);
+        StructCmsghdr[] cmsg = new StructCmsghdr[1];
+        cmsg[0] = new StructCmsghdr(SOL_UDP, UDP_SEGMENT, (short) 1400);
+
+        //sendmsg/recvmsg with 1*4K ByteBuffer
+        ByteBuffer[] bufferArray = new ByteBuffer[1];
+        ByteBuffer[] bufferArrayRecv = new ByteBuffer[1];
+        bufferArray[0] = ByteBuffer.allocate(4096);
+        bufferArrayRecv[0] = ByteBuffer.allocate(4096);
+
+        StructMsghdr sendmsgHdr = new StructMsghdr(loopbackAddr,
+                                                   bufferArray,
+                                                   cmsg, 0);
+        StructMsghdr recvmsgHdr = new StructMsghdr(new InetSocketAddress(),
+                                                   bufferArrayRecv,
+                                                   null, 0);
+
+        checkSendmsgSocketAddress(AF_INET6, loopbackAddr, sendmsgHdr, recvmsgHdr, 4096);
+    }
+
+    @Test
+    public void test_sendmsg_af_inet6_4K_directBuffer() throws Exception {
+        // UDP GRO not required to be enabled on kernels prior to 5.4
+        assumeTrue(kernelIsAtLeast(5, 4));
+
+        InetSocketAddress loopbackAddr = new InetSocketAddress(InetAddress.getByName("127.0.0.1"),
+                                                               10234);
+        StructCmsghdr[] cmsg = new StructCmsghdr[1];
+        cmsg[0] = new StructCmsghdr(SOL_UDP, UDP_SEGMENT, (short) 1400);
+
+        //sendmsg/recvmsg with 1*4K ByteBuffer
+        ByteBuffer[] bufferArray = new ByteBuffer[1];
+        ByteBuffer[] bufferArrayRecv = new ByteBuffer[1];
+        bufferArray[0] = ByteBuffer.allocateDirect(4096); // DirectBuffer
+        bufferArrayRecv[0] = ByteBuffer.allocateDirect(4096); // DirectBuffer
+
+        StructMsghdr sendmsgHdr = new StructMsghdr(loopbackAddr,
+                                                   bufferArray,
+                                                   cmsg, 0);
+        StructMsghdr recvmsgHdr = new StructMsghdr(new InetSocketAddress(),
+                                                   bufferArrayRecv,
+                                                   null, 0);
+
+        checkSendmsgSocketAddress(AF_INET6, loopbackAddr, sendmsgHdr, recvmsgHdr, 4096);
+    }
+
+    @Test
+    public void test_sendmsg_af_inet_16K_recvparts() throws Exception {
+        // UDP GRO not required to be enabled on kernels prior to 5.4
+        assumeTrue(kernelIsAtLeast(5, 4));
+
+        InetSocketAddress loopbackAddr = new InetSocketAddress(InetAddress.getByName("127.0.0.1"),
+                                                               10234);
+        StructCmsghdr[] cmsg = new StructCmsghdr[1];
+        cmsg[0] = new StructCmsghdr(SOL_UDP, UDP_SEGMENT, (short) 1400);
+
+        //sendmsg with 4*4K ByteBuffer, recv with 1*4K ByteBuffer(already with MSG_TRUNC option)
+        ByteBuffer[] bufferArray = new ByteBuffer[4];
+        ByteBuffer[] bufferArrayRecv = new ByteBuffer[1];
+        bufferArray[0] = ByteBuffer.allocate(4096);
+        bufferArray[1] = ByteBuffer.allocate(4096);
+        bufferArray[2] = ByteBuffer.allocate(4096);
+        bufferArray[3] = ByteBuffer.allocate(4096);
+        bufferArrayRecv[0] = ByteBuffer.allocate(4096); //receive only part of data
+
+        StructMsghdr sendmsgHdr = new StructMsghdr(loopbackAddr,
+                                                   bufferArray,
+                                                   cmsg, 0);
+        StructMsghdr recvmsgHdr = new StructMsghdr(new InetSocketAddress(),
+                                                   bufferArrayRecv,
+                                                   null, 0);
+
+        checkSendmsgSocketAddress(AF_INET, loopbackAddr, sendmsgHdr, recvmsgHdr, 4096 * 4);
+    }
+
+    @Test
+    public void test_sendmsg_af_inet_16K_reciveall() throws Exception {
+        // UDP GRO not required to be enabled on kernels prior to 5.4
+        assumeTrue(kernelIsAtLeast(5, 4));
+
+        InetSocketAddress loopbackAddr = new InetSocketAddress(InetAddress.getByName("127.0.0.1"),
+                                                               10234);
+        StructCmsghdr[] cmsg = new StructCmsghdr[1];
+        cmsg[0] = new StructCmsghdr(SOL_UDP, UDP_SEGMENT, (short) 1400);
+
+        // Create sendmsg/recvmsg with 4*4K ByteBuffer
+        ByteBuffer[] bufferArray = new ByteBuffer[4];
+        bufferArray[0] = ByteBuffer.allocate(4096);
+        bufferArray[1] = ByteBuffer.allocate(4096);
+        bufferArray[2] = ByteBuffer.allocate(4096);
+        bufferArray[3] = ByteBuffer.allocate(4096);
+
+        StructMsghdr sendmsgHdr = new StructMsghdr(loopbackAddr, bufferArray, cmsg, 0);
+        StructMsghdr recvmsgHdr = new StructMsghdr(new InetSocketAddress(), bufferArray, null, 0);
+
+        checkSendmsgSocketAddress(AF_INET, loopbackAddr, sendmsgHdr, recvmsgHdr, 4096 * 4);
+    }
+
+    @Test
+    public void test_sendmsg_af_inet_16K_receiveall_without_recv_msgname() throws Exception {
+        // UDP GRO not required to be enabled on kernels prior to 5.4
+        assumeTrue(kernelIsAtLeast(5, 4));
+
+        InetSocketAddress loopbackAddr = new InetSocketAddress(InetAddress.getByName("127.0.0.1"),
+                                                               10234);
+        StructCmsghdr[] cmsg = new StructCmsghdr[1];
+        cmsg[0] = new StructCmsghdr(SOL_UDP, UDP_SEGMENT, (short) 1400);
+
+        // Create sendmsg/recvmsg with 4*4K ByteBuffer
+        ByteBuffer[] bufferArray = new ByteBuffer[4];
+        bufferArray[0] = ByteBuffer.allocate(4096);
+        bufferArray[1] = ByteBuffer.allocate(4096);
+        bufferArray[2] = ByteBuffer.allocate(4096);
+        bufferArray[3] = ByteBuffer.allocate(4096);
+
+        StructMsghdr sendmsgHdr = new StructMsghdr(loopbackAddr, bufferArray, cmsg, 0);
+        // msg_name is unnecessary.
+        StructMsghdr recvmsgHdr = new StructMsghdr(null, bufferArray, null, 0);
+
+        checkSendmsgSocketAddress(AF_INET, loopbackAddr, sendmsgHdr, recvmsgHdr, 4096 * 4);
+    }
+
+    @Test
+    public void test_sendmsg_af_inet_16K_without_send_msgcontrl() throws Exception {
+        // UDP GRO not required to be enabled on kernels prior to 5.4
+        assumeTrue(kernelIsAtLeast(5, 4));
+
+        InetSocketAddress loopbackAddr = new InetSocketAddress(InetAddress.getByName("127.0.0.1"),
+                                                               10234);
+
+        // Create sendmsg/recvmsg with 4*4K ByteBuffer
+        ByteBuffer[] bufferArray = new ByteBuffer[4];
+        bufferArray[0] = ByteBuffer.allocate(4096);
+        bufferArray[1] = ByteBuffer.allocate(4096);
+        bufferArray[2] = ByteBuffer.allocate(4096);
+        bufferArray[3] = ByteBuffer.allocate(4096);
+
+        // GSO will not happen without msgcontrol.
+        StructMsghdr sendmsgHdr = new StructMsghdr(loopbackAddr, bufferArray, null, 0);
+        StructMsghdr recvmsgHdr = new StructMsghdr(null, bufferArray, null, 0);
+
+        checkSendmsgSocketAddress(AF_INET, loopbackAddr, sendmsgHdr, recvmsgHdr, 4096 * 4);
+    }
+
+    @Test
+    public void test_sendmsg_af_inet_abnormal() throws Exception {
+        //sendmsg socket set
+        InetSocketAddress address = new InetSocketAddress(InetAddress.getByName("127.0.0.1"),
+                                                          10234);
+        FileDescriptor sendFd = Os.socket(AF_INET, SOCK_DGRAM, 0);
+
+        ByteBuffer[] bufferArray = new ByteBuffer[1];
+        bufferArray[0] = ByteBuffer.allocate(8192);
+
+        try {
+            StructMsghdr msgHdr = new StructMsghdr(address, null, null, 0);
+            Os.sendmsg(sendFd, msgHdr, 0);
+            fail("Expected NullPointerException due to invalid StructMsghdr.msg_iov(NULL)");
+        } catch (NullPointerException expected) {
+        }
+
+        try {
+            StructMsghdr msgHdr = new StructMsghdr(null, bufferArray, null, 0);
+            Os.sendmsg(sendFd, msgHdr, 0);
+            fail("Expected ErrnoException due to invalid StructMsghdr.msg_name(NULL)");
+        } catch (ErrnoException expected) {
+            assertEquals("Expected EDESTADDRREQ binding IPv4 socket to ::", EDESTADDRREQ,
+                    expected.errno);
+        }
+
     }
 
     @Test

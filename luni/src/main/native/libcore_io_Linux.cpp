@@ -73,6 +73,9 @@
 #include "NetworkUtilities.h"
 #include "Portability.h"
 #include "ScopedBytes.h"
+#include "ScopedByteBufferArray.h"
+#include "ScopedMsghdr.h"
+
 
 #ifndef __unused
 #define __unused __attribute__((__unused__))
@@ -612,6 +615,30 @@ static bool fillInetSocketAddress(JNIEnv* env, jobject javaInetSocketAddress,
     return true;
 }
 
+#if __has_include(<linux/vm_sockets.h>)
+static bool fillVmSocketAddress(JNIEnv* env, jobject javaVmSocketAddress,
+        const sockaddr_storage& ss) {
+    static jfieldID portFid = env->GetFieldID(
+            JniConstants::GetVmSocketAddressClass(env), "svmPort", "I");
+    static jfieldID cidFid = env->GetFieldID(
+            JniConstants::GetVmSocketAddressClass(env), "svmCid", "I");
+
+    if (javaVmSocketAddress == NULL) {
+        return true;
+    }
+
+    if (ss.ss_family != AF_VSOCK) {
+        return false;
+    }
+
+    const sockaddr_vm& svm = reinterpret_cast<const sockaddr_vm&>(ss);
+    env->SetIntField(javaVmSocketAddress, portFid, svm.svm_port);
+    env->SetIntField(javaVmSocketAddress, cidFid, svm.svm_cid);
+
+    return true;
+}
+#endif
+
 static bool fillSocketAddress(JNIEnv* env, jobject javaSocketAddress, const sockaddr_storage& ss,
         const socklen_t& sa_len) {
     if (javaSocketAddress == NULL) {
@@ -622,6 +649,10 @@ static bool fillSocketAddress(JNIEnv* env, jobject javaSocketAddress, const sock
         return fillInetSocketAddress(env, javaSocketAddress, ss);
     } else if (env->IsInstanceOf(javaSocketAddress, JniConstants::GetUnixSocketAddressClass(env))) {
         return fillUnixSocketAddress(env, javaSocketAddress, ss, sa_len);
+#if __has_include(<linux/vm_sockets.h>)
+    } else if (env->IsInstanceOf(javaSocketAddress, JniConstants::GetVmSocketAddressClass(env))) {
+        return fillVmSocketAddress(env, javaSocketAddress, ss);
+#endif
     }
     jniThrowException(env, "java/lang/UnsupportedOperationException",
             "unsupported SocketAddress subclass");
@@ -727,6 +758,24 @@ static bool javaPacketSocketAddressToSockaddr(
     return true;
 }
 
+#if __has_include(<linux/vm_sockets.h>)
+static bool javaVmSocketAddressToSockaddr(
+        JNIEnv* env, jobject javaSocketAddress, sockaddr_storage& ss, socklen_t& sa_len) {
+    static jfieldID portFid = env->GetFieldID(
+            JniConstants::GetVmSocketAddressClass(env), "svmPort", "I");
+    static jfieldID cidFid = env->GetFieldID(
+            JniConstants::GetVmSocketAddressClass(env), "svmCid", "I");
+
+    sockaddr_vm& svm = reinterpret_cast<sockaddr_vm&>(ss);
+    svm.svm_family = AF_VSOCK;
+    svm.svm_port = env->GetIntField(javaSocketAddress, portFid);
+    svm.svm_cid = env->GetIntField(javaSocketAddress, cidFid);
+
+    sa_len = sizeof(svm);
+    return true;
+}
+#endif
+
 static bool javaSocketAddressToSockaddr(
         JNIEnv* env, jobject javaSocketAddress, sockaddr_storage& ss, socklen_t& sa_len) {
     if (javaSocketAddress == NULL) {
@@ -742,6 +791,11 @@ static bool javaSocketAddressToSockaddr(
         return javaPacketSocketAddressToSockaddr(env, javaSocketAddress, ss, sa_len);
     } else if (env->IsInstanceOf(javaSocketAddress, JniConstants::GetUnixSocketAddressClass(env))) {
         return javaUnixSocketAddressToSockaddr(env, javaSocketAddress, ss, sa_len);
+#if __has_include(<linux/vm_sockets.h>)
+    } else if (env->IsInstanceOf(javaSocketAddress,
+                                 JniConstants::GetVmSocketAddressClass(env))) {
+        return javaVmSocketAddressToSockaddr(env, javaSocketAddress, ss, sa_len);
+#endif
     }
     jniThrowException(env, "java/lang/UnsupportedOperationException",
             "unsupported SocketAddress subclass");
@@ -2129,6 +2183,62 @@ static jint Linux_recvfromBytes(JNIEnv* env, jobject, jobject javaFd, jobject ja
     return recvCount;
 }
 
+static jint Linux_recvmsg(JNIEnv* env, jobject, jobject javaFd, jobject structMsghdr, jint flags) {
+    ssize_t rc = -1;
+    ScopedMsghdr scopedMsghdrValue;
+    ScopedByteBufferArray scopedBytesArray(env, true);
+    sockaddr_storage ss = {};
+
+    static jfieldID msgNameFid = env->GetFieldID(JniConstants::GetStructMsghdrClass(env),
+                                                  "msg_name", "Ljava/net/SocketAddress;");
+    if (!msgNameFid) {
+        return -1;
+    }
+
+    // Initialize msghdr with everything from StructCMsghdr except msg_name.
+    if (msghdrJavaToC(env, structMsghdr, scopedMsghdrValue.getObject(),
+                           scopedBytesArray) == false) {
+        return -1;
+    }
+
+    jobject javaSocketAddress = env->GetObjectField(structMsghdr, msgNameFid);
+    if (javaSocketAddress) {
+        // client want to get source address, then set msg_name and msg_namelen.
+        scopedMsghdrValue.setMsgNameAndLen(reinterpret_cast<sockaddr*>(&ss),
+                                              sizeof(sockaddr_in6));
+    }
+
+    rc = NET_FAILURE_RETRY(env, ssize_t, recvmsg, javaFd, \
+                               &scopedMsghdrValue.getObject(), flags);
+
+    if (rc < 0) {
+        return rc;
+    }
+
+    if (javaSocketAddress) {
+        sockaddr_storage* interfaceAddr = NULL;
+        if (!scopedMsghdrValue.isNameLenValid()) {
+            jniThrowException(env, "java/net/SocketException",
+                                   "unknown socket address type");
+                return -1;
+        }
+
+        interfaceAddr = reinterpret_cast<sockaddr_storage*>(scopedMsghdrValue.getObject().msg_name);
+        if (fillSocketAddress(env, javaSocketAddress, *interfaceAddr,
+                scopedMsghdrValue.getObject().msg_namelen) == false) {
+            return -1;
+        }
+    }
+
+    if (msghdrCToJava(env, structMsghdr, scopedMsghdrValue.getObject(),
+                            scopedBytesArray) == false) {
+        return -1;
+    }
+
+    return rc;
+}
+
+
 static void Linux_remove(JNIEnv* env, jobject, jstring javaPath) {
     ScopedUtfChars path(env, javaPath);
     if (path.c_str() == NULL) {
@@ -2183,6 +2293,66 @@ static jlong Linux_sendfile(JNIEnv* env, jobject, jobject javaOutFd, jobject jav
         env->SetLongField(javaOffset, int64RefValueFid, offset);
     }
     return result;
+}
+
+static jint Linux_sendmsg(JNIEnv* env, jobject, jobject javaFd, jobject structMsghdr, jint flags) {
+
+    ssize_t rc = -1;
+    ScopedMsghdr scopedMsghdrValue = {};
+    ScopedByteBufferArray scopedBytesArray(env, false);
+    static jfieldID msgNameFid = env->GetFieldID(JniConstants::GetStructMsghdrClass(env),
+                                                  "msg_name",
+                                                  "Ljava/net/SocketAddress;");
+    if (!msgNameFid) {
+        return -1;
+    }
+
+    jobject sockAddrObj = env->GetObjectField(structMsghdr, msgNameFid);
+
+    // Initialize structMsghdr with everything from C msghdr except msg_name.
+    if (msghdrJavaToC(env, structMsghdr, scopedMsghdrValue.getObject(),
+                           scopedBytesArray) == false) {
+        return -1;
+    }
+
+    sockaddr_storage ss = {};
+    socklen_t sa_len = 0;
+    if (sockAddrObj && javaSocketAddressToSockaddr(env, sockAddrObj, ss, sa_len) == false) {
+        return -1;
+    }
+
+    sockaddr* _sa = sa_len ? reinterpret_cast<sockaddr*>(&ss) : NULL;
+    scopedMsghdrValue.setMsgNameAndLen(_sa, sa_len);
+    rc  = NET_FAILURE_RETRY(env, ssize_t, sendmsg, javaFd, \
+                                 &(scopedMsghdrValue.getObject()), flags);
+
+    if (sockAddrObj &&
+        !env->IsInstanceOf(sockAddrObj, JniConstants::GetInetSocketAddressClass(env))) {
+        // non InetSockAddress case, return now;
+        return rc;
+    }
+
+    // InetSocket and IPv6 didn't work, fallback to IPv4.
+    if (rc  == -1 && errno == EAFNOSUPPORT && sa_len && isIPv4MappedAddress(_sa)) {
+        env->ExceptionClear();
+
+        jobject javaInetAddress;
+        jint port = 0;
+        javaInetSocketAddressToInetAddressAndPort(env, sockAddrObj, javaInetAddress, port);
+
+        // Get IPv4 sockaddr.
+        if (!inetAddressToSockaddrVerbatim(env, javaInetAddress, port, ss, sa_len)) {
+            return rc;
+        }
+
+        // Use IPv4 msghdr.msg_name.
+        _sa = sa_len ? reinterpret_cast<sockaddr*>(&ss) : NULL;
+        scopedMsghdrValue.setMsgNameAndLen(_sa, sa_len);
+        rc = NET_FAILURE_RETRY(env, ssize_t, sendmsg, javaFd, \
+                                    &(scopedMsghdrValue.getObject()), flags);
+    }
+
+    return rc;
 }
 
 static jint Linux_sendtoBytes(JNIEnv* env, jobject, jobject javaFd, jobject javaBytes, jint byteOffset, jint byteCount, jint flags, jobject javaInetAddress, jint port) {
@@ -2664,10 +2834,12 @@ static JNINativeMethod gMethods[] = {
     NATIVE_METHOD(Linux, realpath, "(Ljava/lang/String;)Ljava/lang/String;"),
     NATIVE_METHOD(Linux, readv, "(Ljava/io/FileDescriptor;[Ljava/lang/Object;[I[I)I"),
     NATIVE_METHOD(Linux, recvfromBytes, "(Ljava/io/FileDescriptor;Ljava/lang/Object;IIILjava/net/InetSocketAddress;)I"),
+    NATIVE_METHOD(Linux, recvmsg, "(Ljava/io/FileDescriptor;Landroid/system/StructMsghdr;I)I"),
     NATIVE_METHOD(Linux, remove, "(Ljava/lang/String;)V"),
     NATIVE_METHOD(Linux, removexattr, "(Ljava/lang/String;Ljava/lang/String;)V"),
     NATIVE_METHOD(Linux, rename, "(Ljava/lang/String;Ljava/lang/String;)V"),
     NATIVE_METHOD(Linux, sendfile, "(Ljava/io/FileDescriptor;Ljava/io/FileDescriptor;Landroid/system/Int64Ref;J)J"),
+    NATIVE_METHOD(Linux, sendmsg, "(Ljava/io/FileDescriptor;Landroid/system/StructMsghdr;I)I"),
     NATIVE_METHOD(Linux, sendtoBytes, "(Ljava/io/FileDescriptor;Ljava/lang/Object;IIILjava/net/InetAddress;I)I"),
     NATIVE_METHOD_OVERLOAD(Linux, sendtoBytes, "(Ljava/io/FileDescriptor;Ljava/lang/Object;IIILjava/net/SocketAddress;)I", SocketAddress),
     NATIVE_METHOD(Linux, setegid, "(I)V"),
