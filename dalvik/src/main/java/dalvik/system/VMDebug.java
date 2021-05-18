@@ -41,6 +41,7 @@ public final class VMDebug {
      * startAllocCounting to the trace key file.
      */
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
+    // Must match android.os.Debug.TRACE_COUNT_ALLOCS.
     public static final int TRACE_COUNT_ALLOCS = 1;
 
     /* constants for getAllocCount */
@@ -496,6 +497,8 @@ public final class VMDebug {
         runtimeStatsMap.put("art.gc.blocking-gc-time", 5);
         runtimeStatsMap.put("art.gc.gc-count-rate-histogram", 6);
         runtimeStatsMap.put("art.gc.blocking-gc-count-rate-histogram", 7);
+        runtimeStatsMap.put("art.gc.objects-allocated", 8);
+        runtimeStatsMap.put("art.gc.total-time-waiting-for-gc", 9);
     }
 
     /**
