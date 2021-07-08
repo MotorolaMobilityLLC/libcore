@@ -16,6 +16,9 @@
 
 package dalvik.system;
 
+import static android.annotation.SystemApi.Client.MODULE_LIBRARIES;
+
+import android.annotation.SystemApi;
 import android.compat.annotation.UnsupportedAppUsage;
 
 /**
@@ -110,6 +113,7 @@ import android.compat.annotation.UnsupportedAppUsage;
  *
  * @hide
  */
+@SystemApi(client = MODULE_LIBRARIES)
 @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
 @libcore.api.IntraCoreApi
 public final class CloseGuard {
@@ -142,8 +146,11 @@ public final class CloseGuard {
      * up the instance to warn on failure to close.
      *
      * @return {@link CloseGuard} instance.
+     *
+     * @hide
      */
     @UnsupportedAppUsage(trackingBug=111170242)
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     @libcore.api.IntraCoreApi
     public static CloseGuard get() {
@@ -158,8 +165,11 @@ public final class CloseGuard {
      * one-line warning is logged.
      *
      * @param enabled whether stack capture and tracking is enabled.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static void setEnabled(boolean enabled) {
         CloseGuard.stackAndTrackingEnabled = enabled;
@@ -167,6 +177,8 @@ public final class CloseGuard {
 
     /**
      * True if CloseGuard stack capture and tracking are enabled.
+     *
+     * @hide
      */
     public static boolean isEnabled() {
         return stackAndTrackingEnabled;
@@ -177,8 +189,11 @@ public final class CloseGuard {
      * violations when stack tracking is enabled. Must be non-null.
      *
      * @param rep replacement for default Reporter.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static void setReporter(Reporter rep) {
         if (rep == null) {
@@ -191,7 +206,10 @@ public final class CloseGuard {
      * Returns non-null CloseGuard.Reporter.
      *
      * @return CloseGuard's Reporter.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static Reporter getReporter() {
         return reporter;
@@ -204,6 +222,8 @@ public final class CloseGuard {
      *
      * <p>This is only intended for use by {@code dalvik.system.CloseGuardSupport} class and so
      * MUST NOT be used for any other purposes.
+     *
+     * @hide
      */
     public static void setTracker(Tracker tracker) {
         currentTracker = tracker;
@@ -215,6 +235,8 @@ public final class CloseGuard {
      *
      * <p>This is only intended for use by {@code dalvik.system.CloseGuardSupport} class and so
      * MUST NOT be used for any other purposes.
+     *
+     * @hide
      */
     public static Tracker getTracker() {
         return currentTracker;
@@ -230,8 +252,11 @@ public final class CloseGuard {
      *
      * @param closer non-null name of explicit termination method. Printed by warnIfOpen.
      * @throws NullPointerException if closer is null.
+     *
+     * @hide
      */
     @UnsupportedAppUsage(trackingBug=111170242)
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     @libcore.api.IntraCoreApi
     public void open(String closer) {
@@ -247,7 +272,10 @@ public final class CloseGuard {
      *
      * @param closer Non-null name of explicit termination method. Printed by warnIfOpen.
      * @param callsite Non-null string uniquely identifying the callsite.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public void openWithCallSite(String closer, String callsite) {
         // always perform the check for valid API usage...
@@ -282,8 +310,11 @@ public final class CloseGuard {
     /**
      * Marks this CloseGuard instance as closed to avoid warnings on
      * finalization.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     @libcore.api.IntraCoreApi
     public void close() {
@@ -301,8 +332,11 @@ public final class CloseGuard {
      * when the CloseGuard was created, passes the stacktrace associated with
      * the allocation to the current reporter. If it was not enabled, it just
      * directly logs a brief message.
+     *
+     * @hide
      */
     @UnsupportedAppUsage(trackingBug=111170242)
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     @libcore.api.IntraCoreApi
     public void warnIfOpen() {
@@ -324,6 +358,8 @@ public final class CloseGuard {
      *
      * <p>This is only intended for use by {@code dalvik.system.CloseGuardSupport} class and so
      * MUST NOT be used for any other purposes.
+     *
+     * @hide
      */
     public interface Tracker {
         void open(Throwable allocationSite);
@@ -334,12 +370,23 @@ public final class CloseGuard {
      * Interface to allow customization of reporting behavior.
      * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public interface Reporter {
+        /**
+         *
+         * @hide
+         */
         @UnsupportedAppUsage
+        @SystemApi(client = MODULE_LIBRARIES)
         @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
         void report(String message, Throwable allocationSite);
 
+        /**
+         *
+         * @hide
+         */
+        @SystemApi(client = MODULE_LIBRARIES)
         @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
         default void report(String message) {}
     }

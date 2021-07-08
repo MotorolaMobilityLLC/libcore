@@ -16,6 +16,10 @@
 
 package libcore.net.http;
 
+import static android.annotation.SystemApi.Client.MODULE_LIBRARIES;
+
+import android.annotation.SystemApi;
+
 import libcore.api.CorePlatformApi;
 
 import java.io.IOException;
@@ -34,13 +38,17 @@ import libcore.util.NonNull;
  *
  * @hide
  */
+@SystemApi(client = MODULE_LIBRARIES)
 @CorePlatformApi(status = CorePlatformApi.Status.STABLE)
 public class HttpURLConnectionFactory {
     private final com.android.okhttp.internalandroidapi.HttpURLConnectionFactory mFactory;
 
     /**
      * Create a new {@link HttpURLConnectionFactory} instance.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @CorePlatformApi(status = CorePlatformApi.Status.STABLE)
     @NonNull public static HttpURLConnectionFactory createInstance() {
         return new HttpURLConnectionFactory();
@@ -57,7 +65,10 @@ public class HttpURLConnectionFactory {
      * @param maxIdleConnections The maximum number of idle connections to each to keep in the pool.
      * @param keepAliveDuration Time to keep the connection alive in the pool before closing it.
      * @param timeUnit The time unit of keep alive duration.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @CorePlatformApi(status = CorePlatformApi.Status.STABLE)
     public void setNewConnectionPool(int maxIdleConnections, long keepAliveDuration,
             @NonNull TimeUnit timeUnit) {
@@ -68,7 +79,10 @@ public class HttpURLConnectionFactory {
      * Sets a new dns resolver.
      *
      * @param dns the dns resolver for looking up.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @CorePlatformApi(status = CorePlatformApi.Status.STABLE)
     public void setDns(@NonNull Dns dns) {
         mFactory.setDns(dns);
@@ -84,7 +98,10 @@ public class HttpURLConnectionFactory {
      *
      * @return An {@link java.net.URLConnection} using given SocketFactory, proxy settings and
      *         configuration.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @CorePlatformApi(status = CorePlatformApi.Status.STABLE)
     public URLConnection openConnection(@NonNull URL url, @NonNull SocketFactory socketFactory,
             @NonNull Proxy proxy) throws IOException {

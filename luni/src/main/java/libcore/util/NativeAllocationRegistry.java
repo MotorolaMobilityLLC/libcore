@@ -16,6 +16,10 @@
 
 package libcore.util;
 
+import static android.annotation.SystemApi.Client.MODULE_LIBRARIES;
+
+import android.annotation.SystemApi;
+
 import dalvik.system.VMRuntime;
 import sun.misc.Cleaner;
 
@@ -42,6 +46,7 @@ import libcore.util.NonNull;
  * used to register any number of native allocations of that kind.
  * @hide
  */
+@SystemApi(client = MODULE_LIBRARIES)
 @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
 @libcore.api.IntraCoreApi
 public class NativeAllocationRegistry {
@@ -77,7 +82,10 @@ public class NativeAllocationRegistry {
      *                     Approximate values are acceptable.
      * @return allocated {@link NativeAllocationRegistry}
      * @throws IllegalArgumentException If {@code size} is negative
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static NativeAllocationRegistry createNonmalloced(
             @NonNull ClassLoader classLoader, long freeFunction, long size) {
@@ -105,7 +113,10 @@ public class NativeAllocationRegistry {
      *                     a few hundered KB, use the simplified overload below.
      * @return allocated {@link NativeAllocationRegistry}
      * @throws IllegalArgumentException If {@code size} is negative
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static NativeAllocationRegistry createMalloced(
             @NonNull ClassLoader classLoader, long freeFunction, long size) {
@@ -122,7 +133,10 @@ public class NativeAllocationRegistry {
      *                     {@code void f(void* nativePtr)} used to free this
      *                     kind of native allocation
      * @return allocated {@link NativeAllocationRegistry}
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     @libcore.api.IntraCoreApi
     public static NativeAllocationRegistry createMalloced(
@@ -193,7 +207,10 @@ public class NativeAllocationRegistry {
      *                     allocation, excluding memory allocated with system malloc.
      *                     A value of 0 indicates that the memory was allocated mainly
      *                     with malloc.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public NativeAllocationRegistry(@NonNull ClassLoader classLoader, long freeFunction, long size) {
         this(classLoader, freeFunction, size, size == 0);
@@ -230,7 +247,10 @@ public class NativeAllocationRegistry {
      *                           called with {@code nativePtr} as its
      *                           argument before the {@link OutOfMemoryError} is
      *                           thrown.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     @libcore.api.IntraCoreApi
     public @NonNull Runnable registerNativeAllocation(@NonNull Object referent, long nativePtr) {
@@ -322,7 +342,10 @@ public class NativeAllocationRegistry {
      * @param freeFunction address of a native function used to free this
      *                     kind of native allocation
      * @param nativePtr    pointer to pass to freeing function
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static native void applyFreeFunction(long freeFunction, long nativePtr);
 }

@@ -16,6 +16,9 @@
 
 package org.apache.harmony.dalvik.ddmc;
 
+import static android.annotation.SystemApi.Client.MODULE_LIBRARIES;
+
+import android.annotation.SystemApi;
 import android.compat.annotation.UnsupportedAppUsage;
 import java.nio.ByteBuffer;
 
@@ -28,19 +31,36 @@ import java.nio.ByteBuffer;
  *
  * @hide
  */
+@SystemApi(client = MODULE_LIBRARIES)
 @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
 public class Chunk {
 
-    /*
+    /**
      * Public members.  Do not rename without updating the VM.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public int type;                // chunk type
+    /**
+     * @hide
+     */
     public byte[] data;             // chunk data
-    public int offset, length;      // position within "data"
+    /**
+     * @hide
+     */
+    public int offset;              // position within "dataf"
+
+    /**
+     * @hide
+     */
+    public int length;
 
     /**
      * Blank constructor.  Fill in your own fields.
+     *
+     * @hide
      */
     public Chunk() {}
 
@@ -51,7 +71,10 @@ public class Chunk {
      * @param data   chunk data
      * @param offset offset in {@code data} where actual data starts from
      * @param length length of the {@code data}
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public Chunk(int type, byte[] data, int offset, int length) {
         this.type = type;
@@ -66,8 +89,11 @@ public class Chunk {
      *
      * @param type chunk type
      * @param buf  {@link ByteBuffer} containing chunk data
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public Chunk(int type, ByteBuffer buf) {
         this.type = type;

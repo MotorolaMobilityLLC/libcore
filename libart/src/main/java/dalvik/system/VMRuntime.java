@@ -16,13 +16,15 @@
 
 package dalvik.system;
 
+import static android.annotation.SystemApi.Client.MODULE_LIBRARIES;
+
+import android.annotation.SystemApi;
 import android.compat.annotation.ChangeId;
 import android.compat.annotation.EnabledSince;
 import android.compat.annotation.Disabled;
 import android.compat.annotation.UnsupportedAppUsage;
 
 import dalvik.annotation.compat.VersionCodes;
-import dalvik.annotation.optimization.CriticalNative;
 import dalvik.annotation.optimization.FastNative;
 
 import libcore.api.CorePlatformApi;
@@ -40,6 +42,7 @@ import java.util.function.Consumer;
  *
  * @hide
  */
+@SystemApi(client = MODULE_LIBRARIES)
 @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
 @libcore.api.IntraCoreApi
 public final class VMRuntime {
@@ -101,7 +104,10 @@ public final class VMRuntime {
 
     /**
      * Interface for logging hidden API usage events.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public interface HiddenApiUsageLogger {
 
@@ -110,26 +116,38 @@ public final class VMRuntime {
         /**
          * Internal test value that does not correspond to an actual access by the
          * application. Never logged, added for completeness.
+         *
+         * @hide
          */
+        @SystemApi(client = MODULE_LIBRARIES)
         @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
         public static final int ACCESS_METHOD_NONE = 0;
 
         /**
          *  Used when a method has been accessed via reflection.
+         *
+         * @hide
          */
+        @SystemApi(client = MODULE_LIBRARIES)
         @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
         public static final int ACCESS_METHOD_REFLECTION = 1;
 
         /**
          *  Used when a method has been accessed via JNI.
+         *
+         * @hide
          */
+        @SystemApi(client = MODULE_LIBRARIES)
         @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
         public static final int ACCESS_METHOD_JNI = 2;
 
         /**
          * Used when a method is accessed at link time. Never logged, added only
          * for completeness.
+         *
+         * @hide
          */
+        @SystemApi(client = MODULE_LIBRARIES)
         @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
         public static final int ACCESS_METHOD_LINKING = 3;
 
@@ -146,7 +164,11 @@ public final class VMRuntime {
          *      {@code com.android.app.Activity->finish(I)V})
          * @param accessType how the accessed was done
          * @param accessDenied whether the access was allowed or not
+         *
+         * @hide
          */
+        @SystemApi(client = MODULE_LIBRARIES)
+        @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
         public void hiddenApiUsed(int sampledValue, String appPackageName,
             String signature, int accessType, boolean accessDenied);
     }
@@ -160,7 +182,10 @@ public final class VMRuntime {
      *
      * @param hiddenApiUsageLogger an object implement {@code HiddenApiUsageLogger} that the runtime
      *          will call for logging hidden API checks.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static void setHiddenApiUsageLogger(HiddenApiUsageLogger hiddenApiUsageLogger) {
         VMRuntime.hiddenApiUsageLogger = hiddenApiUsageLogger;
@@ -185,6 +210,7 @@ public final class VMRuntime {
      * any released version in {@code android.os.Build.VERSION_CODES}.
      * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     // Must match android.os.Build.VERSION_CODES.CUR_DEVELOPMENT.
     public static final int SDK_VERSION_CUR_DEVELOPMENT = 10000;
@@ -211,8 +237,11 @@ public final class VMRuntime {
     /**
      * Returns the object that represents the current runtime.
      * @return the runtime object
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = CorePlatformApi.Status.STABLE)
     @libcore.api.IntraCoreApi
     public static VMRuntime getRuntime() {
@@ -222,21 +251,29 @@ public final class VMRuntime {
     /**
      * Returns a copy of the VM's command-line property settings.
      * These are in the form "name=value" rather than "-Dname=value".
+     *
+     * @hide
      */
     public native String[] properties();
 
     /**
      * Returns the VM's boot class path.
+     *
+     * @hide
      */
     public native String bootClassPath();
 
     /**
      * Returns the VM's class path.
+     *
+     * @hide
      */
     public native String classPath();
 
     /**
      * Returns the VM's version.
+     *
+     * @hide
      */
     public native String vmVersion();
 
@@ -244,8 +281,11 @@ public final class VMRuntime {
      * Returns the name of the shared library providing the VM implementation.
      *
      * @return the name of the shared library providing the VM implementation.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public native String vmLibrary();
 
@@ -253,8 +293,11 @@ public final class VMRuntime {
      * Returns the VM's instruction set.
      *
      * @return the VM's instruction set.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public native String vmInstructionSet();
 
@@ -262,8 +305,11 @@ public final class VMRuntime {
      * Returns whether the VM is running in 64-bit mode.
      *
      * @return true if VM is running in 64-bit mode, false otherwise.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = CorePlatformApi.Status.STABLE)
     @FastNative
     public native boolean is64Bit();
@@ -273,7 +319,10 @@ public final class VMRuntime {
      *
      * @return true if the VM is running with JNI checking enabled,
      *         and false otherwise.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     @FastNative
     public native boolean isCheckJniEnabled();
@@ -285,6 +334,8 @@ public final class VMRuntime {
      * equal to this number.
      *
      * @return the current ideal heap utilization
+     *
+     * @hide
      */
     public native float getTargetHeapUtilization();
 
@@ -292,6 +343,8 @@ public final class VMRuntime {
      * Retrieves the finalizer timeout in milliseconds.
      * Finalizers that fail to terminate in this amount of time cause the
      * runtime to abort.
+     *
+     * @hide
      */
     public native long getFinalizerTimeoutMs();
 
@@ -307,6 +360,8 @@ public final class VMRuntime {
      *                  This value may be adjusted internally.
      * @return the previous ideal heap utilization
      * @throws IllegalArgumentException if newTarget is &lt;= 0.0 or &gt;= 1.0
+     *
+     * @hide
      */
     @UnsupportedAppUsage
     public float setTargetHeapUtilization(float newTarget) {
@@ -333,9 +388,12 @@ public final class VMRuntime {
      * dangerous ways. Defaults to {@link #SDK_VERSION_CUR_DEVELOPMENT}.
      *
      * @param targetSdkVersion the SDK version the app wants to run with.
+     *
+     * @hide
      */
     @UnsupportedAppUsage(maxTargetSdk=0, publicAlternatives="Use the {@code targetSdkVersion}"
         +" attribute in the {@code uses-sdk} manifest tag instead.")
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public synchronized void setTargetSdkVersion(int targetSdkVersion) {
         this.targetSdkVersion = targetSdkVersion;
@@ -349,7 +407,10 @@ public final class VMRuntime {
      * dangerous ways. Defaults to empty.
      *
      * @param disabledCompatChanges An array of ChangeIds that we want to disable.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public synchronized void setDisabledCompatChanges(long[] disabledCompatChanges) {
         this.disabledCompatChanges = disabledCompatChanges;
@@ -361,7 +422,10 @@ public final class VMRuntime {
      * special values.
      *
      * @return the target SDK version.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public synchronized int getTargetSdkVersion() {
         return targetSdkVersion;
@@ -373,6 +437,8 @@ public final class VMRuntime {
     /**
      * This method exists for binary compatibility.  It was part of a
      * heap sizing API which was removed in Android 3.0 (Honeycomb).
+     *
+     * @hide
      */
     @UnsupportedAppUsage
     @Deprecated
@@ -383,6 +449,8 @@ public final class VMRuntime {
     /**
      * This method exists for binary compatibility.  It was part of a
      * heap sizing API which was removed in Android 3.0 (Honeycomb).
+     *
+     * @hide
      */
     @UnsupportedAppUsage
     @Deprecated
@@ -393,6 +461,8 @@ public final class VMRuntime {
     /**
      * This method exists for binary compatibility.  It used to
      * perform a garbage collection that cleared SoftReferences.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
     @Deprecated
@@ -401,6 +471,8 @@ public final class VMRuntime {
     /**
      * This method exists for binary compatibility.  It is equivalent
      * to {@link System#runFinalization}.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
     @Deprecated
@@ -419,6 +491,8 @@ public final class VMRuntime {
     /**
      * This method exists for binary compatibility.  It was part of
      * the external allocation API which was removed in Android 3.0 (Honeycomb).
+     *
+     * @hide
      */
     @UnsupportedAppUsage
     @Deprecated
@@ -429,6 +503,8 @@ public final class VMRuntime {
     /**
      * This method exists for binary compatibility.  It was part of
      * the external allocation API which was removed in Android 3.0 (Honeycomb).
+     *
+     * @hide
      */
     @UnsupportedAppUsage
     @Deprecated
@@ -437,6 +513,8 @@ public final class VMRuntime {
     /**
      * This method exists for binary compatibility.  It was part of
      * the external allocation API which was removed in Android 3.0 (Honeycomb).
+     *
+     * @hide
      */
     @UnsupportedAppUsage
     @Deprecated
@@ -451,7 +529,10 @@ public final class VMRuntime {
      *         A list of signature prefixes. Each item in the list is a prefix match on the type
      *         signature of a blacklisted API. All matching APIs are treated as if they were on
      *         the whitelist: access permitted, and no logging..
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public native void setHiddenApiExemptions(String[] signaturePrefixes);
 
@@ -460,7 +541,10 @@ public final class VMRuntime {
      *
      * @param rate Proportion of hidden API accesses that will be logged; an integer between
      *                0 and 0x10000 inclusive.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public native void setHiddenApiAccessLogSamplingRate(int rate);
 
@@ -472,8 +556,11 @@ public final class VMRuntime {
      * @param componentType the component type of the returned array.
      * @param length the length of the returned array.
      * @return array allocated in an area of the heap where it will never be moved.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     @libcore.api.IntraCoreApi
     @FastNative
@@ -488,7 +575,10 @@ public final class VMRuntime {
      * @param minLength     the minimum length of the returned array. The actual length could
      *                      be greater.
      * @return              array of at least of {@code minLength}
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     @FastNative
     public native Object newUnpaddedArray(Class<?> componentType, int minLength);
@@ -499,8 +589,11 @@ public final class VMRuntime {
      *
      * @param array the object we want the native address of.
      * @return native address of {@code array[0]}.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     @libcore.api.IntraCoreApi
     @FastNative
@@ -509,15 +602,21 @@ public final class VMRuntime {
     /**
      * Removes any growth limits, allowing the application to allocate
      * up to the maximum heap size.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public native void clearGrowthLimit();
 
     /**
      * Make the current growth limit the new non growth limit capacity by releasing pages which
      * are after the growth limit but before the non growth limit capacity.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public native void clampGrowthLimit();
 
@@ -525,13 +624,18 @@ public final class VMRuntime {
      * Returns true if native debugging is on.
      *
      * @return true if native debugging is on, false otherwise.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     @FastNative
     public native boolean isNativeDebuggable();
 
     /**
      * Returns true if Java debugging is enabled.
+     *
+     * @hide
      */
     public native boolean isJavaDebuggable();
 
@@ -546,8 +650,11 @@ public final class VMRuntime {
      * but may otherwise be approximate.
      *
      * @param bytes the number of bytes of the native object.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public native void registerNativeAllocation(long bytes);
 
@@ -557,9 +664,12 @@ public final class VMRuntime {
      * @deprecated Use {@link #registerNativeAllocation(long)} instead.
      *
      * @param bytes the number of bytes of the native object.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
     @Deprecated
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public void registerNativeAllocation(int bytes) {
         registerNativeAllocation((long) bytes);
@@ -569,8 +679,11 @@ public final class VMRuntime {
      * Registers a native free by reducing the number of native bytes accounted for.
      *
      * @param bytes the number of bytes of the freed object.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public native void registerNativeFree(long bytes);
 
@@ -579,9 +692,12 @@ public final class VMRuntime {
      * @deprecated Use {@link #registerNativeFree(long)} instead.
      *
      * @param bytes the number of bytes of the freed object.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
     @Deprecated
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public void registerNativeFree(int bytes) {
         registerNativeFree((long) bytes);
@@ -595,6 +711,8 @@ public final class VMRuntime {
 
     /**
      * Report a native malloc()-only allocation to the GC.
+     *
+     * @hide
      */
     public void notifyNativeAllocation() {
         // Minimize JNI calls by notifying once every notifyNativeInterval allocations.
@@ -618,6 +736,8 @@ public final class VMRuntime {
      * Report to the GC that roughly notifyNativeInterval native malloc()-based
      * allocations have occurred since the last call to notifyNativeAllocationsInternal().
      * Hints that we should check whether a GC is required.
+     *
+     * @hide
      */
     public native void notifyNativeAllocationsInternal();
 
@@ -634,6 +754,8 @@ public final class VMRuntime {
      *
      * @see #Runtime.runFinalization()
      * @see #wait(long,int)
+     *
+     * @hide
      */
     @UnsupportedAppUsage
     public static void runFinalization(long timeout) {
@@ -648,14 +770,41 @@ public final class VMRuntime {
 
     /**
      * Request that a garbage collection gets started on a different thread.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public native void requestConcurrentGC();
 
+    /**
+     *
+     * @hide
+     */
     public native void requestHeapTrim();
+
+    /**
+     *
+     * @hide
+     */
     public native void trimHeap();
+
+    /**
+     *
+     * @hide
+     */
     public native void startHeapTaskProcessor();
+
+    /**
+     *
+     * @hide
+     */
     public native void stopHeapTaskProcessor();
+
+    /**
+     *
+     * @hide
+     */
     public native void runHeapTasks();
 
     /**
@@ -663,21 +812,30 @@ public final class VMRuntime {
      * behavior regarding trimming and compaction.
      *
      * @param state The state of the process, as defined in art/runtime/process_state.h.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public native void updateProcessState(int state);
 
     /**
      * Let the runtime know that the application startup is completed. This may affect behavior
      * related to profiling and startup caches.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public native void notifyStartupCompleted();
 
     /**
      * Fill in dex caches with classes, fields, and methods that are
      * already loaded. Typically used after Zygote preloading.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public native void preloadDexCaches();
 
@@ -685,21 +843,30 @@ public final class VMRuntime {
      * Flag denoting that the code paths passed to
      * {@link #registerAppInfo(String, String, String, String[], int, boolean)}
      * contains the app primary APK.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static final int CODE_PATH_TYPE_PRIMARY_APK = 1 << 0;
     /**
      * Flag denoting that the code paths passed to
      * {@link #registerAppInfo(String, String, String, String[], int, boolean)}
      * contains the a split APK.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static final int CODE_PATH_TYPE_SPLIT_APK = 1 << 1;
     /**
      * Flag denoting that the code paths passed to
      * {@link #registerAppInfo(String, String, String, String[], int, boolean)}
      * contains a secondary dex file (dynamically loaded by the app).
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static final int CODE_PATH_TYPE_SECONDARY_DEX = 1 << 2;
 
@@ -717,7 +884,10 @@ public final class VMRuntime {
      * @param appCodePaths the code paths (apk/dex files) of the applications that were loaded.
      *        These paths will also be profiled.
      * @param codePathsTypes the type of the code paths.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static native void registerAppInfo(
             String packageName,
@@ -734,8 +904,11 @@ public final class VMRuntime {
      * This influences the compilation of the applications classes.
      *
      * @param abi The ABI we want the instruction set from.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static String getInstructionSet(String abi) {
         final String instructionSet = ABI_TO_INSTRUCTION_SET_MAP.get(abi);
@@ -752,7 +925,10 @@ public final class VMRuntime {
      * @param instructionSet a string representing an instruction set.
      *
      * @return true if given {@code instructionSet} is 64 bits, false otherwise.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static boolean is64BitInstructionSet(String instructionSet) {
         return "arm64".equals(instructionSet) ||
@@ -766,8 +942,11 @@ public final class VMRuntime {
      * @param abi a string representing an ABI.
      *
      * @return true if given {@code abi} is 64 bits, false otherwise.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static boolean is64BitAbi(String abi) {
         return is64BitInstructionSet(getInstructionSet(abi));
@@ -777,12 +956,17 @@ public final class VMRuntime {
      * Return false if the boot class path for the given instruction
      * set mapped from disk storage, versus being interpretted from
      * dirty pages in memory.
+     *
+     * @hide
      */
     public static native boolean isBootClassPathOnDisk(String instructionSet);
 
     /**
      * Used to notify the runtime that boot completed.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static native void bootCompleted();
 
@@ -790,7 +974,10 @@ public final class VMRuntime {
      * Used to notify the runtime to reset Jit counters. This is done for the boot image
      * profiling configuration to avoid samples during class preloading. This helps avoid
      * the regression from disabling class profiling.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static native void resetJitCounters();
 
@@ -798,20 +985,28 @@ public final class VMRuntime {
      * Returns the instruction set of the current runtime.
      *
      * @return instruction set of the current runtime.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static native String getCurrentInstructionSet();
 
     /**
      * Register the current execution thread to the runtime as sensitive thread.
      * Should be called just once. Subsequent calls are ignored.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static native void registerSensitiveThread();
 
     /**
      * Sets up the priority of the system daemon thread (caller).
+     *
+     * @hide
      */
     public static native void setSystemDaemonThreadPriority();
 
@@ -820,7 +1015,10 @@ public final class VMRuntime {
      *
      * @param consumer an object implementing the {@code java.util.function.Consumer} interface that
      *      the runtime will call whenever a usage of a non SDK API is detected.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static void setNonSdkApiUsageConsumer(Consumer<String> consumer) {
         nonSdkApiUsageConsumer = consumer;
@@ -831,7 +1029,10 @@ public final class VMRuntime {
      *
      * @param dedupe if set, only the first usage of each API will be detected. The default
      *      behaviour is to dedupe.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static native void setDedupeHiddenApiWarnings(boolean dedupe);
 
@@ -839,7 +1040,10 @@ public final class VMRuntime {
      * Sets the package name of the app running in this process.
      *
      * @param packageName the value being set
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static native void setProcessPackageName(String packageName);
 
@@ -847,7 +1051,10 @@ public final class VMRuntime {
      * Sets the full path to data directory of the app running in this process.
      *
      * @param dataDir the value being set
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static native void setProcessDataDirectory(String dataDir);
 
@@ -860,7 +1067,10 @@ public final class VMRuntime {
      * @throws NullPointerException if {@code encodedClassLoaderContext is null.
      * @return {@code true} if {@code encodedClassLoaderContext} is a non-null valid encoded class
      *         loader context.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static native boolean isValidClassLoaderContext(String encodedClassLoaderContext);
 }

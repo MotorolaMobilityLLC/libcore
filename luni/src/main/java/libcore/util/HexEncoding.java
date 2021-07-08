@@ -16,10 +16,15 @@
 
 package libcore.util;
 
+import static android.annotation.SystemApi.Client.MODULE_LIBRARIES;
+
+import android.annotation.SystemApi;
+
 /**
  * Hexadecimal encoding where each byte is represented by two hexadecimal digits.
  * @hide
  */
+@SystemApi(client = MODULE_LIBRARIES)
 @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
 public class HexEncoding {
 
@@ -41,7 +46,10 @@ public class HexEncoding {
      * @param  upperCase {@code true} to use uppercase letters, {@code false}
      *         for lowercase
      * @return the encoded string
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static String encodeToString(byte b, boolean upperCase) {
         char[] digits = upperCase ? UPPER_CASE_DIGITS : LOWER_CASE_DIGITS;
@@ -56,7 +64,10 @@ public class HexEncoding {
      *
      * @param  data byte array to encode
      * @return the encoded data, using uppercase letters
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static char[] encode(byte[] data) {
         return encode(data, 0, data.length, true /* upperCase */);
@@ -69,7 +80,10 @@ public class HexEncoding {
      * @param  upperCase {@code true} to use uppercase letters, {@code false}
      *         for lowercase
      * @return the encoded data
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static char[] encode(byte[] data, boolean upperCase) {
         return encode(data, 0, data.length, upperCase);
@@ -82,7 +96,10 @@ public class HexEncoding {
      * @param  offset offset of the data to encode in the {@code data} array
      * @param  len length of the data to encode in the {@code data} array
      * @return the encoded data, using uppercase letters
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static char[] encode(byte[] data, int offset, int len) {
         return encode(data, offset, len, true /* upperCase */);
@@ -109,7 +126,10 @@ public class HexEncoding {
      *
      * @param  data byte array to encode
      * @return the encoded data, using uppercase letters
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static String encodeToString(byte[] data) {
         return encodeToString(data, true /* upperCase */);
@@ -122,7 +142,10 @@ public class HexEncoding {
      * @param  upperCase {@code true} to use uppercase letters, {@code false}
      *         for lowercase
      * @return the encoded data
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static String encodeToString(byte[] data, boolean upperCase) {
         return new String(encode(data, upperCase));
@@ -136,7 +159,10 @@ public class HexEncoding {
      *         can be either uppercase or lowercase.
      * @return the decoded data
      * @throws IllegalArgumentException if the input is malformed
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static byte[] decode(String encoded) throws IllegalArgumentException {
         return decode(encoded.toCharArray());
@@ -152,7 +178,10 @@ public class HexEncoding {
      *         result byte. If {@code false} odd-length inputs are not allowed.
      * @return the decoded data
      * @throws IllegalArgumentException if the input is malformed
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static byte[] decode(String encoded, boolean allowSingleChar)
             throws IllegalArgumentException {
@@ -167,7 +196,10 @@ public class HexEncoding {
      *         can be either uppercase or lowercase.
      * @return the decoded data
      * @throws IllegalArgumentException if the input is malformed
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static byte[] decode(char[] encoded) throws IllegalArgumentException {
         return decode(encoded, false);
@@ -183,7 +215,10 @@ public class HexEncoding {
      *         result byte. If {@code false} odd-length inputs are not allowed.
      * @return the decoded data
      * @throws IllegalArgumentException if the input is malformed
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static byte[] decode(char[] encoded, boolean allowSingleChar)
             throws IllegalArgumentException {

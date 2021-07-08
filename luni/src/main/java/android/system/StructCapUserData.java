@@ -16,6 +16,10 @@
 
 package android.system;
 
+import static android.annotation.SystemApi.Client.MODULE_LIBRARIES;
+
+import android.annotation.SystemApi;
+
 import libcore.util.Objects;
 
 /**
@@ -27,17 +31,33 @@ import libcore.util.Objects;
  *
  * @hide
  */
+@SystemApi(client = MODULE_LIBRARIES)
 @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
 public final class StructCapUserData {
-    /** Effective capability mask. */
+    /**
+     * Effective capability mask.
+     *
+     * @hide
+     */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public final int effective; /* __u32 */
 
-    /** Permitted capability mask. */
+    /**
+     * Permitted capability mask.
+     *
+     * @hide
+     */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public final int permitted; /* __u32 */
 
-    /** Inheritable capability mask. */
+    /**
+     * Inheritable capability mask.
+     *
+     * @hide
+     */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public final int inheritable; /* __u32 */
 
@@ -47,7 +67,10 @@ public final class StructCapUserData {
      * @param effective   effective capability mask
      * @param permitted   permitted capability mask
      * @param inheritable inheritable capability mask
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public StructCapUserData(int effective, int permitted, int inheritable) {
         this.effective = effective;
@@ -55,6 +78,9 @@ public final class StructCapUserData {
         this.inheritable = inheritable;
     }
 
+    /**
+     * @hide
+     */
     @Override public String toString() {
         return Objects.toString(this);
     }

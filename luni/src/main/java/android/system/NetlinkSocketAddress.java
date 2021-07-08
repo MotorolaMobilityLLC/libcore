@@ -16,6 +16,9 @@
 
 package android.system;
 
+import static android.annotation.SystemApi.Client.MODULE_LIBRARIES;
+
+import android.annotation.SystemApi;
 import android.compat.annotation.UnsupportedAppUsage;
 
 import java.net.SocketAddress;
@@ -48,19 +51,33 @@ import libcore.util.Objects;
  *
  * @hide
  */
+@SystemApi(client = MODULE_LIBRARIES)
 @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
 public final class NetlinkSocketAddress extends SocketAddress {
-    /** port ID */
+    /**
+     * port ID
+     *
+     * @hide
+     */
     private final int nlPortId;
 
-    /** multicast groups mask */
+    /**
+     * multicast groups mask
+     *
+     * @hide
+     */
     private final int nlGroupsMask;
 
+    /**
+     * @hide
+     */
     // VisibleForTesting
     public NetlinkSocketAddress() {
         this(0, 0);
     }
-
+    /**
+     * @hide
+     */
     // VisibleForTesting
     public NetlinkSocketAddress(int nlPortId) {
         this(nlPortId, 0);
@@ -71,8 +88,11 @@ public final class NetlinkSocketAddress extends SocketAddress {
      *
      * @param nlPortId     port id
      * @param nlGroupsMask groups mask
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public NetlinkSocketAddress(int nlPortId, int nlGroupsMask) {
         this.nlPortId = nlPortId;
@@ -83,7 +103,10 @@ public final class NetlinkSocketAddress extends SocketAddress {
      * Returns this address's port id.
      *
      * @return port id
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public int getPortId() {
         return nlPortId;
@@ -93,12 +116,18 @@ public final class NetlinkSocketAddress extends SocketAddress {
      * Returns this address's groups multicast mask.
      *
      * @return groups mask
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public int getGroupsMask() {
         return nlGroupsMask;
     }
 
+    /**
+     * @hide
+     */
     @Override public String toString() {
       return Objects.toString(this);
     }

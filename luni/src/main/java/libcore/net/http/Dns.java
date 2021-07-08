@@ -16,6 +16,10 @@
 
 package libcore.net.http;
 
+import static android.annotation.SystemApi.Client.MODULE_LIBRARIES;
+
+import android.annotation.SystemApi;
+
 import libcore.api.CorePlatformApi;
 
 import java.net.InetAddress;
@@ -28,6 +32,7 @@ import libcore.util.Nullable;
  * A domain name service that resolves IP addresses for host names.
  * @hide
  */
+@SystemApi(client = MODULE_LIBRARIES)
 @CorePlatformApi(status = CorePlatformApi.Status.STABLE)
 public interface Dns extends com.android.okhttp.internalandroidapi.Dns {
     /**
@@ -35,7 +40,10 @@ public interface Dns extends com.android.okhttp.internalandroidapi.Dns {
      * be attempted. Returns loopback addresses for {@code null} host.
      *
      * @param hostname The host name will be looked up.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @CorePlatformApi(status = CorePlatformApi.Status.STABLE)
     @NonNull List<@NonNull InetAddress> lookup(@Nullable String hostname) throws UnknownHostException;
 }

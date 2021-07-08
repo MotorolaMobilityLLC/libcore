@@ -16,6 +16,9 @@
 
 package org.apache.harmony.dalvik.ddmc;
 
+import static android.annotation.SystemApi.Client.MODULE_LIBRARIES;
+
+import android.annotation.SystemApi;
 import android.compat.annotation.UnsupportedAppUsage;
 
 import java.util.Collection;
@@ -30,6 +33,7 @@ import dalvik.annotation.optimization.FastNative;
  *
  * @hide
  */
+@SystemApi(client = MODULE_LIBRARIES)
 @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
 public final class DdmServer {
 
@@ -57,7 +61,10 @@ public final class DdmServer {
      * @param type    int describing registered handler
      * @param handler handler to be registered
      * @throws NullPointerException if {@code handler} is {@code null}
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static void registerHandler(int type, ChunkHandler handler) {
         if (handler == null) {
@@ -76,7 +83,10 @@ public final class DdmServer {
      * Unregister the existing handler for the specified type.
      *
      * Returns the old handler.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static ChunkHandler unregisterHandler(int type) {
         synchronized (mHandlerMap) {
@@ -87,7 +97,10 @@ public final class DdmServer {
     /**
      * The application must call here after it finishes registering
      * handlers.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static void registrationComplete() {
         // sync on mHandlerMap because it's convenient and makes a kind of
@@ -105,8 +118,11 @@ public final class DdmServer {
      * Use this for "unsolicited" chunks.
      *
      * @param chunk to send
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static void sendChunk(Chunk chunk) {
         nativeSendChunk(chunk.type, chunk.data, chunk.offset, chunk.length);
@@ -119,6 +135,8 @@ public final class DdmServer {
 
     /*
      * Called by the VM when the DDM server connects or disconnects.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
     private static void broadcast(int event)

@@ -16,6 +16,9 @@
 
 package libcore.io;
 
+import static android.annotation.SystemApi.Client.MODULE_LIBRARIES;
+
+import android.annotation.SystemApi;
 import android.compat.annotation.UnsupportedAppUsage;
 import android.system.ErrnoException;
 import android.system.StructStat;
@@ -39,6 +42,7 @@ import static android.system.OsConstants.O_NONBLOCK;
 import static android.system.OsConstants.O_RDONLY;
 
 /** @hide */
+@SystemApi(client = MODULE_LIBRARIES)
 @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
 public final class IoUtils {
     private IoUtils() {
@@ -57,7 +61,10 @@ public final class IoUtils {
      * @param fd {@link FileDescriptor} to take ownership from, must be non-{@code null}.
      * @return raw file descriptor
      * @throws NullPointerException if fd is null
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static int acquireRawFd(@NonNull FileDescriptor fd) {
         Objects.requireNonNull(fd);
@@ -140,7 +147,10 @@ public final class IoUtils {
      * @param owner owner object
      * @throws NullPointerException if {@code fd} or {@code owner} are {@code null}
      * @throws IllegalStateException if {@code fd} is already owned
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static void setFdOwner(@NonNull FileDescriptor fd, @NonNull Object owner) {
         Objects.requireNonNull(fd);
@@ -165,7 +175,10 @@ public final class IoUtils {
      *
      * @param fd is {@link FileDescriptor} instance, invalid value is ignored.
      * @throws IOException if an I/O error occurred.
+     *
+     * @hide
      */
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static void close(@Nullable FileDescriptor fd) throws IOException {
         IoBridge.closeAndSignalBlockedThreads(fd);
@@ -175,8 +188,11 @@ public final class IoUtils {
      * Closes {@link AutoClosable} instance, ignoring any checked exceptions.
      *
      * @param close is AutoClosable instance, null value is ignored.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static void closeQuietly(@Nullable AutoCloseable closeable) {
         if (closeable != null) {
@@ -193,8 +209,11 @@ public final class IoUtils {
      * Calls {@link #close(FileDescriptor)}, ignoring any exceptions.
      *
      * @param fd is {@link FileDescriptor} instance, invalid value is ignored.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static void closeQuietly(@Nullable FileDescriptor fd) {
         try {
@@ -207,8 +226,11 @@ public final class IoUtils {
      * Closes socket, ignoring any exceptions.
      *
      * @param socket is {@link Socket} instance, {@code null} value is ignored.
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static void closeQuietly(@Nullable Socket socket) {
         if (socket != null) {
@@ -227,8 +249,11 @@ public final class IoUtils {
      * @param fd is {@link FileDescriptor} instance
      * @param blocking is a boolean that defines whether fd should be blocking or non-blocking
      * @throws IOException if system API call fails
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static void setBlocking(@NonNull FileDescriptor fd, boolean blocking) throws IOException {
         try {
@@ -250,8 +275,11 @@ public final class IoUtils {
      * @param absolutePath path to a file to read
      * @return contents of the file at {@code absolutePath} as byte array
      * @throws IOException if there was I/O error
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static @NonNull byte[] readFileAsByteArray(@NonNull String absolutePath) throws IOException {
         return new FileReader(absolutePath).readFully().toByteArray();
@@ -263,8 +291,11 @@ public final class IoUtils {
      * @param absolutePath path to a file to read
      * @return contents of the file at {@code absolutePath} as {@link String}
      * @throws IOException if there was I/O error
+     *
+     * @hide
      */
     @UnsupportedAppUsage
+    @SystemApi(client = MODULE_LIBRARIES)
     @libcore.api.CorePlatformApi(status = libcore.api.CorePlatformApi.Status.STABLE)
     public static @NonNull String readFileAsString(@NonNull String absolutePath) throws IOException {
         return new FileReader(absolutePath).readFully().toString(StandardCharsets.UTF_8);
@@ -278,10 +309,10 @@ public final class IoUtils {
      * supposed to be best-effort.
      *
      * @deprecated Use {@link TestIoUtils#createTemporaryDirectory} instead.
+     *
+     * @hide
      */
-    @libcore.api.CorePlatformApi
-    @Deprecated
-    public static void deleteContents(File dir) throws IOException {
+    public static void deleteContents(@NonNull File dir) throws IOException {
         File[] files = dir.listFiles();
         if (files != null) {
             for (File file : files) {
@@ -301,6 +332,8 @@ public final class IoUtils {
      * remove read permission from more directories. Everyone else should just open(2) and then
      * use the fd, but the loadLibrary API is broken by its need to ask ClassLoaders where to
      * find a .so rather than just calling dlopen(3).
+     *
+     * @hide
      */
     public static boolean canOpenReadOnly(String path) {
         try {
@@ -313,6 +346,9 @@ public final class IoUtils {
         }
     }
 
+    /**
+     * @hide
+     */
     public static void throwInterruptedIoException() throws InterruptedIOException {
         // This is typically thrown in response to an
         // InterruptedException which does not leave the thread in an
