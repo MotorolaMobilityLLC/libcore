@@ -3,6 +3,7 @@
 filegroup {
     name: "openjdk_javadoc_files",
     srcs: [
+        "ojluni/src/main/java/com/mediatek/cta/CtaAdapter.java",
         "ojluni/src/main/java/java/awt/font/NumericShaper.java",
         "ojluni/src/main/java/java/awt/font/TextAttribute.java",
         "ojluni/src/main/java/java/beans/IndexedPropertyChangeEvent.java",
@@ -343,7 +344,6 @@ filegroup {
         "ojluni/src/main/java/java/net/URL.java",
         "ojluni/src/main/java/java/net/URLStreamHandlerFactory.java",
         "ojluni/src/main/java/java/net/URLStreamHandler.java",
-        "ojluni/src/main/java/java/net/cta/CtaAdapter.java",
         "ojluni/src/main/java/java/net/package-info.java",
         "ojluni/src/main/java/java/nio/Bits.java",
         "ojluni/src/main/java/java/nio/Buffer.java",

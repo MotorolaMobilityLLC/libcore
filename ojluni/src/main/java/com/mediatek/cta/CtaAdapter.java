@@ -1,4 +1,4 @@
-package java.net.cta;
+package com.mediatek.cta;
 
 import dalvik.system.PathClassLoader;
 
@@ -27,7 +27,7 @@ public final class CtaAdapter {
 
     /** @hide */
     public static boolean isSendingPermitted(int port) {
-        System.out.println("[socket]:check permission begin!");
+        System.out.println("[com.mediatek.cta.CtaAdapter]:check permission begin!");
         try {
             if (ctaPermissionChecker == null && flag == Value.NULL_VALUE) {
                 ClassLoader classLoader = new PathClassLoader(jarPath,
@@ -45,7 +45,7 @@ public final class CtaAdapter {
 
         } catch (ReflectiveOperationException e) {
             flag = Value.CTA_DISABLE;
-            System.out.println("[socket] e:" + e);
+            System.out.println("[com.mediatek.cta.CtaAdapter] e:" + e);
             if (e.getCause() instanceof SecurityException) {
                 throw new SecurityException(e.getCause());
             } else if (e.getCause() instanceof ClassNotFoundException) {
@@ -54,7 +54,7 @@ public final class CtaAdapter {
         } catch (Throwable ee) {
             if (ee instanceof NoClassDefFoundError) {
                 flag = Value.CTA_DISABLE;
-                System.out.println("[socket] ee:" + ee);
+                System.out.println("[com.mediatek.cta.CtaAdapter] ee:" + ee);
             }
         }
         return true;

@@ -30,11 +30,12 @@ import java.io.FileDescriptor;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
-import java.net.cta.CtaAdapter;
 import java.nio.channels.SocketChannel;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
 import java.security.PrivilegedAction;
+
+import com.mediatek.cta.CtaAdapter;
 
 /**
  * This class implements client sockets (also called just
