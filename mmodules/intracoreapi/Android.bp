@@ -96,7 +96,6 @@ java_library {
     name: "art-module-intra-core-api-stubs-system-modules-lib",
     srcs: [
         ":openjdk_lambda_stub_files",
-        ":openjdk_generated_annotation_stub_files",
     ],
     libs: [
         "art.module.intra.core.api",
